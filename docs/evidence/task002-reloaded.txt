@@ -1,0 +1,113 @@
+Window: "账户 1 - Anki", App: Anki.exe.
+	0 窗口 (settable, string) 账户 1 - Anki Secondary Actions: Raise ID: AnkiApp.MainWindow
+		1 标题栏 (settable, string) Value: 账户 1 - Anki
+			2 菜单栏 系统 ID: MenuBar
+				3 菜单项 系统
+			4 按钮 最小化
+			5 按钮 最大化
+			6 按钮 关闭
+		7 组 (settable, string) ID: AnkiApp.MainWindow.centralwidget
+			8 组 (settable, string) ID: AnkiApp.MainWindow.centralwidget.TopWebView
+				20 文档 (settable, string) top toolbar ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject
+					21 自定义 (settable, string) ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject
+						22 链接 (settable, string) 牌组 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.decks
+							23 文本 牌组 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.decks.QObject
+						24 链接 (settable, string) 添加 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.add
+							25 文本 添加 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.add.QObject
+						26 链接 (settable, string) 浏览 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.browse
+							27 文本 浏览 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.browse.QObject
+						28 链接 (settable, string) 统计 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.stats
+							29 文本 统计 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.stats.QObject
+						30 链接 (settable, string) 同步 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.sync
+							31 文本 同步 ID: AnkiApp.MainWindow.centralwidget.TopWebView.QObject.QObject.sync.QObject
+			10 组 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView
+				32 文档 (settable, string) main webview ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject
+					33 表格 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject
+						34 标头项目 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject
+							35 项 (settable, string) 牌组 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject
+								36 文本 牌组 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject.QObject
+							37 项 (settable, string) 未学习 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject
+								38 文本 未学习 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject.QObject
+							39 项 (settable, string) 学习中 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject
+								40 文本 学习中 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject.QObject
+							41 项 (settable, string) 待复习 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject
+								42 文本 待复习 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject.QObject
+							43 项 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject
+						44 标头项目 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject
+							45 项 (settable, string)  ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject
+								46 文本  ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.QObject.QObject.QObject
+						47 标头项目 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1
+							48 项 (settable, string) 系统默认 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject
+								49 自定义 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject
+								50 链接 (settable, string) 系统默认 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject
+									51 文本 系统默认 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject.QObject
+							52 项 (settable, string) 0 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject
+								53 文本 0 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject
+							54 项 (settable, string) 0 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject
+								55 文本 0 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject
+							56 项 (settable, string) 0 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject
+								57 文本 0 ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject
+							58 项 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject
+								59 链接 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject
+									60 图像 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject.1.QObject.QObject.QObject
+					61 分隔符 (settable, string)  ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.QObject
+					62 自定义 (settable, string) ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.studiedToday
+						63 文本 今天在 ⁨⁨0⁩ 秒内⁩学习了 ⁨0⁩ 张卡片（平均每张卡片 ⁨0⁩ 秒） ID: AnkiApp.MainWindow.centralwidget.MainWebView.QObject.studiedToday.QObject
+			12 组 (settable, string) ID: AnkiApp.MainWindow.centralwidget.BottomWebView
+				64 文档 (settable, string) bottom toolbar ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject
+					65 自定义 (settable, string) ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer
+						66 自定义 (settable, string) ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer.header
+							67 自定义 (settable, string) ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer.header.QObject
+								68 自定义 (settable, string) 获取牌组 创建牌组 导入文件 ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer.header.QObject.QObject
+									69 按钮 (settable, string) 获取牌组 ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer.header.QObject.QObject.QObject
+									70 按钮 (settable, string) 创建牌组 ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer.header.QObject.QObject.QObject
+									71 按钮 (settable, string) 导入文件 ID: AnkiApp.MainWindow.centralwidget.BottomWebView.QObject.outer.header.QObject.QObject.QObject
+		14 菜单栏 (settable, string) ID: AnkiApp.MainWindow.menubar
+			15 菜单项 (settable, string) 文件(F) ID: AnkiApp.MainWindow.menubar.QAction
+			16 菜单项 (settable, string) 编辑(E) ID: AnkiApp.MainWindow.menubar.QAction
+			17 菜单项 (settable, string) 视图(V) ID: AnkiApp.MainWindow.menubar.QAction
+			18 菜单项 (settable, string) 工具(T) ID: AnkiApp.MainWindow.menubar.QAction
+				72 菜单 (settable, string) Anki ID: AnkiApp.MainWindow.menubar.QAction.menuTools
+					73 菜单项 (settable, string) 选择牌组学习… ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionStudyDeck
+					74 菜单项 (settable, string) 创建筛选牌组… ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionCreateFiltered
+					75 分隔符 (disabled, settable, string) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.QAction
+					76 菜单项 (settable, string) 检查数据库(C) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionFullDatabaseCheck
+					77 菜单项 (settable, string) 检查媒体(M) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionCheckMediaDatabase
+					78 菜单项 (settable, string) 清理空卡片… ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionEmptyCards
+					79 分隔符 (disabled, settable, string) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.QAction
+					80 菜单项 (settable, string) 插件 ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionAdd_ons
+					81 分隔符 (disabled, settable, string) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.QAction
+					82 菜单项 (settable, string) 管理笔记模板 ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionNoteTypes
+					83 菜单项 (settable, string) 检查更新 ID: AnkiApp.MainWindow.menubar.QAction.menuTools.action_check_for_updates
+					84 菜单项 (settable, string) 设置(P) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.actionPreferences
+					85 分隔符 (disabled, settable, string) ID: AnkiApp.MainWindow.menubar.QAction.menuTools.QAction
+					86 菜单项 (settable, string) CET 智能备考助手 ID: AnkiApp.MainWindow.menubar.QAction.menuTools.QAction
+			19 菜单项 (settable, string) 帮助(H) ID: AnkiApp.MainWindow.menubar.QAction
+		87 窗口 (settable, string) CET 智能备考助手 · 基本信息 Secondary Actions: Raise ID: AnkiApp.ProfileDialog
+			88 标题栏 (settable, string) Value: CET 智能备考助手 · 基本信息
+				89 菜单栏 系统 ID: MenuBar
+					90 菜单项 系统
+				91 按钮 关闭
+			92 文本 填写四级成绩及六级备考目标。资料仅保存在当前 Anki 账户的本机目录。 ID: AnkiApp.ProfileDialog.QLabel
+			93 文本 四级总分： ID: AnkiApp.ProfileDialog.QLabel
+			94 编辑 (settable, string) 四级总分 Value: 470.0 ID: AnkiApp.ProfileDialog.cet4_total
+			95 文本 听力成绩： ID: AnkiApp.ProfileDialog.QLabel
+			96 编辑 (settable, string) 听力成绩 Value: 115.0 ID: AnkiApp.ProfileDialog.listening
+			97 文本 阅读成绩： ID: AnkiApp.ProfileDialog.QLabel
+			98 编辑 (settable, string) 阅读成绩 Value: 190.0 ID: AnkiApp.ProfileDialog.reading
+			99 文本 写作与翻译： ID: AnkiApp.ProfileDialog.QLabel
+			100 编辑 (settable, string) 写作与翻译 Value: 165.0 ID: AnkiApp.ProfileDialog.writing
+			101 文本 六级目标分数： ID: AnkiApp.ProfileDialog.QLabel
+			102 编辑 (settable, string) 六级目标分数 Value: 500.0 ID: AnkiApp.ProfileDialog.cet6_target
+			103 文本 距离考试（天）： ID: AnkiApp.ProfileDialog.QLabel
+			104 编辑 (settable, string) 距离考试（天） Value: 90 ID: AnkiApp.ProfileDialog.days_remaining
+			105 文本 每日学习（分钟）： ID: AnkiApp.ProfileDialog.QLabel
+			106 编辑 (settable, string) 每日学习（分钟） Value: 120 ID: AnkiApp.ProfileDialog.daily_minutes
+			107 文本 四级成绩用于建立初始能力画像，不能准确预测六级成绩。 本阶段提供资料输入与保存，能力分析将在后续阶段加入。 ID: AnkiApp.ProfileDialog.QLabel
+			108 文本 已读取上次保存的资料。 ID: AnkiApp.ProfileDialog.QLabel
+			109 按钮 (settable, string) 保存资料 ID: AnkiApp.ProfileDialog.QPushButton
+			110 按钮 (settable, string) 关闭 ID: AnkiApp.ProfileDialog.QPushButton
+
+Document text: ```
+120
+```
