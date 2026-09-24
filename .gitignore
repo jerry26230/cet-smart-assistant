@@ -4,3 +4,5 @@ __pycache__/
 .venv/
 venv/
 user_data.json
+.test-tmp/
+.local-backups/
