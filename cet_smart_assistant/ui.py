@@ -1,18 +1,19 @@
-"""Task 002：原生 Qt 资料输入窗口。"""
+"""资料输入与四级初始能力诊断窗口。"""
 
-from aqt.qt import QDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout
+from aqt.qt import QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout
 from aqt.utils import showInfo, showWarning
 
 from .data_service import DataError, load_profile, save_profile
 from .models import StudentProfile
+from .recommendation import SKILL_LABELS, diagnose_profile
 
 
 class ProfileDialog(QDialog):
     def __init__(self, parent, path):
         super().__init__(parent)
         self.path = path
-        self.setWindowTitle("CET 智能备考助手 · 基本信息")
-        self.setMinimumWidth(520)
+        self.setWindowTitle("CET 智能备考助手 · 能力诊断")
+        self.setMinimumWidth(560)
         layout = QVBoxLayout(self)
         intro = QLabel("填写四级成绩及六级备考目标。资料仅保存在当前 Anki 账户的本机目录。")
         intro.setWordWrap(True)
@@ -36,29 +37,59 @@ class ProfileDialog(QDialog):
             self.fields[name] = field
             form.addRow(label + "：", field)
         layout.addLayout(form)
-        note = QLabel("四级成绩用于建立初始能力画像，不能准确预测六级成绩。\n本阶段提供资料输入与保存，能力分析将在后续阶段加入。")
+        note = QLabel("四级成绩仅用于建立初始能力画像，不能准确预测六级成绩。\n后续学习计划还需结合六级练习表现调整。")
         note.setWordWrap(True)
         layout.addWidget(note)
         self.status = QLabel("尚未保存资料。")
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
+        diagnosis_box = QGroupBox("能力分析（基于已保存的四级分项成绩）")
+        diagnosis_layout = QVBoxLayout(diagnosis_box)
+        self.rates_label = QLabel("听力：—　阅读：—　写作翻译：—")
+        self.rates_label.setWordWrap(True)
+        self.summary_label = QLabel("保存资料后显示诊断。")
+        self.summary_label.setWordWrap(True)
+        self.explanation_label = QLabel("规则：比较归一化得分率，薄弱项阈值为 5 个百分点。")
+        self.explanation_label.setWordWrap(True)
+        for label in (self.rates_label, self.summary_label, self.explanation_label):
+            diagnosis_layout.addWidget(label)
+        layout.addWidget(diagnosis_box)
         buttons = QHBoxLayout()
-        self.save_button = QPushButton("保存资料")
+        self.save_button = QPushButton("保存并分析")
         self.save_button.clicked.connect(self.save)
         close_button = QPushButton("关闭")
         close_button.clicked.connect(self.reject)
         buttons.addWidget(self.save_button)
         buttons.addWidget(close_button)
         layout.addLayout(buttons)
+        for field in self.fields.values():
+            field.textChanged.connect(self.invalidate_diagnosis)
         try:
             profile = load_profile(path)
             if profile:
                 for name, field in self.fields.items():
                     field.setText(str(getattr(profile, name)))
                 self.status.setText("已读取上次保存的资料。")
+                self.show_diagnosis(profile)
         except DataError as error:
             self.status.setText(str(error) + "\n请先备份并修复资料文件后重新打开窗口。\n" + str(path))
             self.save_button.setEnabled(False)
+
+    def invalidate_diagnosis(self):
+        self.rates_label.setText("听力：—　阅读：—　写作翻译：—")
+        self.summary_label.setText("输入已修改，请保存并重新分析。")
+        self.explanation_label.setText("规则：比较归一化得分率，薄弱项阈值为 5 个百分点。")
+        # 读取失败时保留错误提示与禁用状态。
+        if self.save_button.isEnabled():
+            self.status.setText("当前修改尚未保存。")
+
+    def show_diagnosis(self, profile):
+        diagnosis = diagnose_profile(profile)
+        self.rates_label.setText("　".join(
+            f"{SKILL_LABELS[skill]}：{rate:.1%}" for skill, rate in diagnosis.rates.items()
+        ))
+        self.summary_label.setText(diagnosis.summary)
+        self.explanation_label.setText(diagnosis.explanation)
 
     def save(self):
         values = {}
@@ -81,4 +112,5 @@ class ProfileDialog(QDialog):
             return
         warning = profile.score_warning()
         self.status.setText("资料已保存。" + ("\n" + warning if warning else ""))
+        self.show_diagnosis(profile)
         showInfo("资料已保存。" + ("\n" + warning if warning else ""), parent=self)
