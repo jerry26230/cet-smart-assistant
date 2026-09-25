@@ -11,7 +11,7 @@ if "cet_core" not in sys.modules:
     sys.modules["cet_core"] = package
 
 from cet_core.models import StudentProfile
-from cet_core.recommendation import calculate_skill_rates, identify_weakness, diagnose_profile
+from cet_core.recommendation import calculate_skill_rates, identify_weakness, diagnose_profile, generate_study_plan
 
 
 class DiagnosisTests(unittest.TestCase):
@@ -50,7 +50,7 @@ class DiagnosisTests(unittest.TestCase):
         for scores in [(124.25, 124.25, 106.5), (248.5, 248.5, 213)]:
             result = diagnose_profile(self.profile(*scores, total=sum(scores)))
             self.assertEqual(result.weaknesses, ())
-            self.assertIn("较均衡", result.summary)
+            self.assertIn("得分率接近", result.summary)
 
     def test_zero_scores_do_not_claim_success(self):
         result = diagnose_profile(self.profile(0, 0, 0, total=0))
@@ -74,6 +74,56 @@ class DiagnosisTests(unittest.TestCase):
 
     def test_deterministic(self):
         self.assertEqual(diagnose_profile(self.profile()), diagnose_profile(self.profile()))
+
+    def test_balanced_default_does_not_rank_abilities(self):
+        self.assertEqual(generate_study_plan(self.profile()).minutes,
+                         dict(vocabulary=24, listening=32, reading=32, writing=32))
+        self.assertIn("不可直接", diagnose_profile(self.profile()).explanation)
+
+    def test_confirmed_focus_overrides_score_hint(self):
+        profile = self.profile()
+        profile.study_focus = "writing"
+        self.assertEqual(generate_study_plan(profile).minutes,
+                         dict(vocabulary=24, listening=24, reading=24, writing=48))
+
+    def test_optional_initial_hint_is_limited(self):
+        profile = self.profile()
+        profile.study_focus = "initial"
+        self.assertEqual(generate_study_plan(profile).minutes,
+                         dict(vocabulary=24, listening=36, reading=30, writing=30))
+
+    def test_all_minutes_and_focus_modes_conserve_time(self):
+        profile = self.profile()
+        for focus in ("balanced", "initial", "listening", "reading", "writing"):
+            profile.study_focus = focus
+            for total in range(1, 1441):
+                profile.daily_minutes = total
+                plan = generate_study_plan(profile)
+                self.assertEqual(sum(plan.minutes.values()), total)
+                self.assertTrue(all(type(value) is int and value >= 0 for value in plan.minutes.values()))
+                self.assertEqual(plan, generate_study_plan(profile))
+
+    def test_target_and_days_change_guidance_not_ability_claim(self):
+        profile = self.profile()
+        before = generate_study_plan(profile)
+        profile.days_remaining = 14
+        profile.cet6_target = 600
+        after = generate_study_plan(profile)
+        self.assertEqual(before.minutes, after.minutes)
+        self.assertIn("考前整合", after.guidance)
+        self.assertIn("目标较高", after.guidance)
+
+    def test_initial_without_hint_falls_back_to_balance(self):
+        profile = self.profile(0, 0, 0, total=0)
+        profile.study_focus = "initial"
+        self.assertEqual(generate_study_plan(profile).minutes,
+                         dict(vocabulary=24, listening=32, reading=32, writing=32))
+
+    def test_invalid_focus_rejected(self):
+        profile = self.profile()
+        profile.study_focus = "unknown"
+        with self.assertRaises(ValueError):
+            generate_study_plan(profile)
 
 
 if __name__ == "__main__":

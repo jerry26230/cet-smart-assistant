@@ -75,6 +75,19 @@ class ProfileTests(unittest.TestCase):
             self.assertEqual(load_profile(path), self.profile())
             self.assertEqual(list(Path(folder).glob("*.tmp")), [])
 
+    def test_legacy_profile_defaults_to_balanced_and_focus_persists(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "user_data.json"
+            save_profile(path, self.profile())
+            document = json.loads(path.read_text())
+            del document["profile"]["study_focus"]
+            path.write_text(json.dumps(document), encoding="utf-8")
+            self.assertEqual(load_profile(path).study_focus, "balanced")
+            profile = load_profile(path)
+            profile.study_focus = "writing"
+            save_profile(path, profile)
+            self.assertEqual(load_profile(path).study_focus, "writing")
+
 
 if __name__ == "__main__":
     unittest.main()

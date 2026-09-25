@@ -13,8 +13,11 @@ class StudentProfile:
     cet6_target: float
     days_remaining: int
     daily_minutes: int
+    study_focus: str = "balanced"
 
     def validate(self) -> None:
+        if self.study_focus not in ("balanced", "initial", "listening", "reading", "writing"):
+            raise ValueError("请选择有效的学习重点。")
         limits = {
             "cet4_total": ("四级总分", 0, 710),
             "listening": ("听力", 0, 248.5),
