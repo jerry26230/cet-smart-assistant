@@ -77,6 +77,9 @@ class ProfileDialog(QDialog):
         close_button = QPushButton("关闭")
         close_button.clicked.connect(self.reject)
         buttons.addWidget(self.save_button)
+        vocabulary_button = QPushButton("词汇卡片")
+        vocabulary_button.clicked.connect(self.open_vocabulary)
+        buttons.addWidget(vocabulary_button)
         buttons.addWidget(close_button)
         outer.addLayout(buttons)
         for field in self.fields.values():
@@ -93,6 +96,15 @@ class ProfileDialog(QDialog):
         except DataError as error:
             self.status.setText(str(error) + "\n请先备份并修复资料文件后重新打开窗口。\n" + str(path))
             self.save_button.setEnabled(False)
+
+    def open_vocabulary(self):
+        from .card_ui import VocabularyDialog
+
+        dialog = VocabularyDialog(self)
+        try:
+            dialog.exec()
+        finally:
+            dialog.deleteLater()
 
     def invalidate_diagnosis(self):
         self.rates_label.setText("听力：—　阅读：—　写作翻译：—")
