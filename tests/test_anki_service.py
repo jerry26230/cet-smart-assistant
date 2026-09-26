@@ -13,7 +13,7 @@ if "cet_core" not in sys.modules:
     package.__path__ = [str(Path(__file__).resolve().parents[1] / "cet_smart_assistant")]
     sys.modules["cet_core"] = package
 
-from cet_core.anki_service import DECK_NAME, add_vocabulary, create_deck, normalize_word, validate_card
+from cet_core.anki_service import DECK_NAME, add_vocabulary, create_deck, import_vocabulary, normalize_word, validate_card
 
 
 class Note(dict):
@@ -56,6 +56,10 @@ class MemoryCollection:
         note.deck_id = deck_id
         self.notes[note.id] = note
 
+    def add_notes(self, requests):
+        for request in requests:
+            self.add_note(request.note, request.deck_id)
+
     def get_note(self, note_id):
         return self.notes[note_id]
 
@@ -71,7 +75,7 @@ class AnkiServiceTests(unittest.TestCase):
     def setUp(self):
         self.col = MemoryCollection()
         # 只模拟变更类型，不把替身误当成真正的 Anki 数据库。
-        self.patch = patch.dict(sys.modules, {"anki.collection": SimpleNamespace(OpChanges=object)})
+        self.patch = patch.dict(sys.modules, {"anki.collection": SimpleNamespace(OpChanges=object, AddNoteRequest=SimpleNamespace)})
         self.patch.start()
         self.addCleanup(self.patch.stop)
 
@@ -132,6 +136,36 @@ class AnkiServiceTests(unittest.TestCase):
     def test_unicode_normalization_and_validation(self):
         self.assertEqual(normalize_word(" ＡＢＡＮＤＯＮ "), "abandon")
         self.assertEqual(validate_card("take\t off", "  起飞  "), ("take off", "起飞"))
+
+    def test_batch_existing_and_internal_duplicates_single_undo(self):
+        add_vocabulary(self.col, "abandon", "原释义")
+        result = import_vocabulary(self.col, [("ABANDON", "覆盖"), ("abstract", "抽象的"), ("ＡＢＳＴＲＡＣＴ", "重复"), ("adapt", "适应")])
+        self.assertIn("已添加 2 条", result.message)
+        self.assertIn("重复 2 条", result.message)
+        self.assertEqual(len(self.col.notes), 3)
+        self.assertEqual(self.col.notes[1]["Back"], "原释义")
+        self.assertEqual(len(self.col.undo_entries), 2)
+        import_vocabulary(self.col, [("abstract", "抽象的"), ("adapt", "适应")])
+        self.assertEqual(len(self.col.undo_entries), 2)
+
+    def test_batch_validates_all_before_writing(self):
+        with self.assertRaises(ValueError):
+            import_vocabulary(self.col, [("valid", "有效"), ("bad", "")])
+        self.assertIsNone(self.col.model)
+        self.assertEqual(len(self.col.notes), 0)
+
+    def test_batch_partial_failure_reports_progress(self):
+        original = self.col.add_note
+        def fail_second(note, deck):
+            if self.col.notes:
+                raise OSError("模拟磁盘错误")
+            original(note, deck)
+        self.col.add_note = fail_second
+        with self.assertRaisesRegex(RuntimeError, "导入中断"):
+            import_vocabulary(self.col, [("one", "一"), ("two", "二")])
+        self.col.add_note = original
+        import_vocabulary(self.col, [("one", "一"), ("two", "二")])
+        self.assertEqual(len(self.col.notes), 2)
 
 
 if __name__ == "__main__":

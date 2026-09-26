@@ -1,0 +1,23 @@
+[
+  {
+    "book": "cet4",
+    "cards": 3815,
+    "repeat_skipped": true,
+    "single_undo": true,
+    "rendered": true
+  },
+  {
+    "book": "cet6",
+    "cards": 5371,
+    "repeat_skipped": true,
+    "single_undo": true,
+    "rendered": true
+  },
+  {
+    "book": "ielts_core",
+    "cards": 4974,
+    "repeat_skipped": true,
+    "single_undo": true,
+    "rendered": true
+  }
+]

@@ -37,10 +37,10 @@ def validate_card(word: str, meaning: str) -> tuple[str, str]:
     return word, meaning
 
 
-def _check_deck(col):
-    deck = col.decks.by_name(DECK_NAME)
+def _check_deck(col, deck_name=DECK_NAME):
+    deck = col.decks.by_name(deck_name)
     if deck and deck.get("dyn"):
-        raise ValueError(f"{DECK_NAME} 已被筛选牌组使用，请先在 Anki 中处理同名冲突。")
+        raise ValueError(f"{deck_name} 已被筛选牌组使用，请先在 Anki 中处理同名冲突。")
     return deck
 
 
@@ -61,41 +61,56 @@ def _check_model(model):
 
 
 def add_vocabulary(col, word: str, meaning: str) -> CardResult:
-    from anki.collection import OpChanges
+    return import_vocabulary(col, [(word, meaning)])
 
-    word, meaning = validate_card(word, meaning)
-    _check_deck(col)
-    model = col.models.by_name(MODEL_NAME)
+
+def import_vocabulary(col, entries, deck_name=DECK_NAME, model_name=MODEL_NAME) -> CardResult:
+    from anki.collection import AddNoteRequest, OpChanges
+
+    entries = [validate_card(*entry) for entry in entries]
+    if not entries or len(entries) > 10000:
+        raise ValueError("每批请输入 1～10000 条词汇。")
+    _check_deck(col, deck_name)
+    model = col.models.by_name(model_name)
+    known = {}
     if model:
         _check_model(model)
-        # 在整个账户的专用笔记类型内查重，移到其他卡组后仍可识别。
-        # MVP 逐项比较；将来大词库导入可改成索引查询。
         for note_id in col.models.nids(model["id"]):
-            existing = col.get_note(note_id)
-            if normalize_word(unescape(existing["Front"])) == normalize_word(word):
-                return CardResult(OpChanges(), "该词汇已存在，未重复添加，也未覆盖原释义。", int(note_id))
-
-    undo_id = col.add_custom_undo_entry("CET：添加词汇卡片")
+            known[normalize_word(unescape(col.get_note(note_id)["Front"]))] = int(note_id)
+    pending = []
+    seen = set(known)
+    for word, meaning in entries:
+        key = normalize_word(word)
+        if key not in seen:
+            pending.append((word, meaning))
+            seen.add(key)
+    skipped = len(entries) - len(pending)
+    if not pending:
+        return CardResult(OpChanges(), f"该词汇已存在，跳过 {skipped} 条，未重复添加，也未覆盖原释义。",
+                          known.get(normalize_word(entries[0][0])))
+    undo_id = col.add_custom_undo_entry("CET：导入词汇卡片")
+    count = 0
     try:
         if model is None:
-            model = col.models.new(MODEL_NAME)
+            model = col.models.new(model_name)
             for field_name in ("Front", "Back"):
                 col.models.add_field(model, col.models.new_field(field_name))
             template = col.models.new_template("词汇卡")
             template["qfmt"], template["afmt"] = QUESTION, ANSWER
             col.models.add_template(model, template)
-            model_id = col.models.add_dict(model).id
-            model = col.models.get(model_id)
-        deck_id = col.decks.add_normal_deck_with_name(DECK_NAME).id
-        note = col.new_note(model)
-        # 输入按纯文本显示，不允许输入内容作为 HTML 或脚本执行。
-        note["Front"] = escape(word).replace("\n", "<br>")
-        note["Back"] = escape(meaning).replace("\n", "<br>")
-        note.tags = ["cet_smart_assistant", "cet6_vocabulary"]
-        col.add_note(note, deck_id)
-    except Exception:
-        # 已完成的步骤保留为一个可撤销操作，错误仍交由界面明确报告。
+            model = col.models.get(col.models.add_dict(model).id)
+        deck_id = col.decks.add_normal_deck_with_name(deck_name).id
+        requests = []
+        for word, meaning in pending:
+            note = col.new_note(model)
+            note["Front"] = escape(word)
+            note["Back"] = escape(meaning).replace("\n", "<br>")
+            note.tags = ["cet_smart_assistant", "cet6_vocabulary"]
+            requests.append(AddNoteRequest(note=note, deck_id=deck_id))
+        col.add_notes(requests)
+        count = len(requests)
+    except Exception as error:
         col.merge_undo_entries(undo_id)
-        raise
+        raise RuntimeError(f"导入中断，可能已有部分内容写入。可在 Anki 中撤销本批操作，或重试并跳过已有词。原因：{error}") from error
     changes = col.merge_undo_entries(undo_id)
-    return CardResult(changes, f"已添加到 {DECK_NAME}。可关闭助手，在 Anki 牌组中学习。", int(note.id), True)
+    return CardResult(changes, f"已添加 {count} 条到 {deck_name}，跳过重复 {skipped} 条。", int(note.id), True)
