@@ -17,7 +17,9 @@ class Feedback:
 def update_plan_from_practice(profile, records, today=None):
     profile.validate()
     today = today or date.today()
-    baseline = generate_study_plan(replace(profile, study_focus="balanced"))
+    baseline = generate_study_plan(replace(profile, study_focus="balanced"), today=today)
+    if profile.remaining_days(today) <= 0:
+        return Feedback(baseline, (), ())
     groups = defaultdict(lambda: defaultdict(list))
     for record in records:
         record.validate()

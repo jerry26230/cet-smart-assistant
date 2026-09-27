@@ -1,6 +1,7 @@
 """与 Anki 和 Qt 无关的输入校验。"""
 
 from dataclasses import dataclass
+from datetime import date
 from math import isfinite
 
 
@@ -14,8 +15,22 @@ class StudentProfile:
     days_remaining: int
     daily_minutes: int
     study_focus: str = "balanced"
+    exam_date: str | None = None
+
+    def remaining_days(self, today=None) -> int:
+        """日期是新资料的唯一倒计时依据；旧资料保留原行为直到确认日期。"""
+        if self.exam_date is None:
+            return int(self.days_remaining)
+        return (date.fromisoformat(self.exam_date) - (today or date.today())).days
 
     def validate(self) -> None:
+        if self.exam_date is not None:
+            try:
+                parsed = date.fromisoformat(self.exam_date)
+                if parsed.isoformat() != self.exam_date:
+                    raise ValueError()
+            except (TypeError, ValueError):
+                raise ValueError("考试日期必须是有效的 YYYY-MM-DD 日期。") from None
         if self.study_focus not in ("balanced", "initial", "listening", "reading", "writing", "feedback"):
             raise ValueError("请选择有效的学习重点。")
         limits = {

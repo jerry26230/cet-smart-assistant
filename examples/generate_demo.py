@@ -30,6 +30,8 @@ def documents(today=None):
                                     "模拟同难度练习", True, 20)
             history.append({"record_version": 1, "id": f"demo-{skill}-{index}", **asdict(record)})
     def document(profile, rows):
+        # 演示日期为生成当天后 90 天，仅为模拟目标，不冒充官方场次。
+        profile.exam_date = (today + timedelta(days=90)).isoformat()
         return {"schema_version": 1, "profile": asdict(profile), "practice_history": rows}
     dynamic = StudentProfile(470, 115, 190, 165, 500, 90, 120, "feedback")
     before = [row for row in history if date.fromisoformat(row["day"]) <= today-timedelta(days=6)]

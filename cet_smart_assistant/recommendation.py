@@ -70,9 +70,14 @@ class StudyPlan:
     guidance: str
 
 
-def generate_study_plan(profile: StudentProfile) -> StudyPlan:
+def generate_study_plan(profile: StudentProfile, today=None) -> StudyPlan:
     """基础覆盖 + 有限机动时间；目标与天数用于练习建议，不预测分数。"""
     diagnosis = diagnose_profile(profile)
+    days = profile.remaining_days(today)
+    if days <= 0:
+        from .exam_calendar import countdown_text
+        return StudyPlan({}, "本场备考时间分配已结束，不自动切换考试场次。",
+                         countdown_text(profile.exam_date, today))
     # 词汇 20%，各专项至少 20%（舍入前），其余 20%为机动时间。
     shares = dict(vocabulary=0.2, listening=0.2, reading=0.2, writing=0.2)
     focused = ()
@@ -98,14 +103,14 @@ def generate_study_plan(profile: StudentProfile) -> StudyPlan:
     order = sorted(raw, key=lambda skill: round(raw[skill] - minutes[skill], 12), reverse=True)
     for skill in order[:total - sum(minutes.values())]:
         minutes[skill] += 1
-    stage = "考前整合" if profile.days_remaining <= 14 else "专项训练" if profile.days_remaining <= 60 else "基础积累"
+    stage = "考前整合" if days <= 14 else "专项训练" if days <= 60 else "基础积累"
     tasks = {
         "考前整合": "在专项时间内安排限时套题片段与错题回顾。",
         "专项训练": "在专项时间内交替安排限时练习和复盘。",
         "基础积累": "先积累词汇与基础题型，再逐步加入限时练习。",
     }
     target_note = "目标较高，建议增加难题复盘与表达质量检查。" if profile.cet6_target >= 550 else "优先巩固常见题型与基础表达，再检查目标差距。"
-    guidance = f"目标 {profile.cet6_target:g} 分；剩余 {profile.days_remaining:g} 天，阶段：{stage}。{tasks[stage]}{target_note}"
+    guidance = f"目标 {profile.cet6_target:g} 分；剩余 {days:g} 天，阶段：{stage}。{tasks[stage]}{target_note}"
     explanation = "词汇 20%，听力/阅读/写作翻译各保留 20% 基础时间。" + reason
     explanation += "整数分钟按最大余数法分配；比例是可调整的项目规则，不保证达到目标分。"
     if total < 5:

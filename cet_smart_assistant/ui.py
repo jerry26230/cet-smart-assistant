@@ -1,10 +1,13 @@
 """资料输入与四级初始能力诊断窗口。"""
 
-from aqt.qt import QComboBox, QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from datetime import date
+
+from aqt.qt import QComboBox, QDate, QDateEdit, QTimer, QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget
 from aqt.utils import showInfo, showWarning
 
 from .data_service import DataError, load_profile, save_profile
 from .models import StudentProfile
+from .exam_calendar import upcoming_exams, countdown_text
 from .recommendation import SKILL_LABELS, diagnose_profile, generate_study_plan
 
 
@@ -12,6 +15,8 @@ class ProfileDialog(QDialog):
     def __init__(self, parent, path):
         super().__init__(parent)
         self.path = path
+        self.rendered_profile = None
+        self.current_day = date.today()
         self.setWindowTitle("CET 智能备考助手 · 学习计划")
         self.setMinimumWidth(560)
         outer = QVBoxLayout(self)
@@ -33,7 +38,6 @@ class ProfileDialog(QDialog):
             ("reading", "阅读成绩", "0～248.5"),
             ("writing", "写作与翻译", "0～213"),
             ("cet6_target", "六级目标分数", "1～710，例如 500"),
-            ("days_remaining", "距离考试（天）", "1～3650，整数"),
             ("daily_minutes", "每日学习（分钟）", "1～1440，整数"),
         ]
         for name, label, hint in definitions:
@@ -44,6 +48,24 @@ class ProfileDialog(QDialog):
             self.fields[name] = field
             form.addRow(label + "：", field)
         layout.addLayout(form)
+        self.exam_selector = QComboBox()
+        self.exam_selector.setAccessibleName("目标考试场次")
+        for label, day, source in upcoming_exams(date.today()):
+            self.exam_selector.addItem(f"{label} · {day}（已公布）", day)
+        self.exam_selector.addItem("自定日期（请按学校通知或准考证确认）", None)
+        self.exam_date = QDateEdit()
+        self.exam_date.setAccessibleName("目标考试日期")
+        self.exam_date.setCalendarPopup(True)
+        self.exam_date.setDisplayFormat("yyyy-MM-dd")
+        self.exam_date.setDate(QDate.currentDate())
+        self.countdown_label = QLabel()
+        self.countdown_label.setWordWrap(True)
+        form.addRow("目标考试场次：", self.exam_selector)
+        form.addRow("目标考试日期：", self.exam_date)
+        form.addRow("自动倒计时：", self.countdown_label)
+        self.calendar_note = QLabel("已公布日期离线内置；未来安排更新前请选择自定日期，以学校通知和准考证为准。")
+        self.calendar_note.setWordWrap(True)
+        form.addRow(self.calendar_note)
         self.focus_selector = QComboBox()
         self.focus_selector.setAccessibleName("学习重点")
         for label, value in [("均衡覆盖（默认）", "balanced"), ("参考初始关注项（小幅倾斜）", "initial"),
@@ -91,17 +113,51 @@ class ProfileDialog(QDialog):
         for field in self.fields.values():
             field.textChanged.connect(self.invalidate_diagnosis)
         self.focus_selector.currentIndexChanged.connect(self.invalidate_diagnosis)
+        self.exam_selector.currentIndexChanged.connect(self.select_exam)
+        self.exam_date.dateChanged.connect(self.date_changed)
+        self.select_exam()
         try:
             profile = load_profile(path)
             if profile:
                 for name, field in self.fields.items():
                     field.setText(str(getattr(profile, name)))
                 self.focus_selector.setCurrentIndex(self.focus_selector.findData(profile.study_focus))
-                self.status.setText("已读取上次保存的资料。")
-                self.show_diagnosis(profile)
+                if profile.exam_date:
+                    index = self.exam_selector.findData(profile.exam_date)
+                    self.exam_selector.setCurrentIndex(index if index >= 0 else self.exam_selector.count() - 1)
+                    self.exam_date.setDate(QDate.fromString(profile.exam_date, "yyyy-MM-dd"))
+                    self.status.setText("已读取上次保存的资料，剩余天数按今天自动计算。")
+                    self.show_diagnosis(profile)
+                else:
+                    self.status.setText("旧资料只有手填天数，无法推断当时的考试日期。请确认上方推荐场次或自定日期，保存后启用自动倒计时。")
         except DataError as error:
             self.status.setText(str(error) + "\n请先备份并修复资料文件后重新打开窗口。\n" + str(path))
             self.save_button.setEnabled(False)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.refresh_day)
+        self.timer.start(30_000)
+
+    def selected_date(self):
+        return self.exam_date.date().toString("yyyy-MM-dd")
+
+    def select_exam(self):
+        day = self.exam_selector.currentData()
+        self.exam_date.setEnabled(day is None)
+        if day:
+            self.exam_date.setDate(QDate.fromString(day, "yyyy-MM-dd"))
+        self.date_changed()
+
+    def date_changed(self):
+        self.countdown_label.setText(countdown_text(self.selected_date(), date.today()))
+        self.invalidate_diagnosis()
+
+    def refresh_day(self):
+        today = date.today()
+        self.countdown_label.setText(countdown_text(self.selected_date(), today))
+        if today != self.current_day:
+            self.current_day = today
+            if self.rendered_profile is not None:
+                self.show_diagnosis(self.rendered_profile)
 
     def open_training(self):
         from .training_ui import TrainingDialog
@@ -135,6 +191,7 @@ class ProfileDialog(QDialog):
             dialog.deleteLater()
 
     def invalidate_diagnosis(self):
+        self.rendered_profile = None
         self.rates_label.setText("听力：—　阅读：—　写作翻译：—")
         self.summary_label.setText("输入已修改，请保存并重新分析。")
         self.explanation_label.setText("分项得分率不直接代表可比能力，请结合实际练习确认重点。")
@@ -144,12 +201,16 @@ class ProfileDialog(QDialog):
             self.status.setText("当前修改尚未保存。")
 
     def show_diagnosis(self, profile):
+        self.rendered_profile = profile
         diagnosis = diagnose_profile(profile)
         self.rates_label.setText("　".join(
             f"{SKILL_LABELS[skill]}：{rate:.1%}" for skill, rate in diagnosis.rates.items()
         ))
         self.summary_label.setText(diagnosis.summary)
         self.explanation_label.setText(diagnosis.explanation)
+        if profile.remaining_days() <= 0:
+            self.plan_label.setText(countdown_text(profile.exam_date, date.today()) + "\n本场备考计划已结束；请确认新场次后保存。")
+            return
         plan = generate_study_plan(profile)
         trend_text = ""
         if profile.study_focus == "feedback":
@@ -181,6 +242,9 @@ class ProfileDialog(QDialog):
                 return
         try:
             values["study_focus"] = self.focus_selector.currentData()
+            values["exam_date"] = self.selected_date()
+            # 兼容旧 JSON 结构，实际计划只使用日期推算天数。
+            values["days_remaining"] = max(1, min(3650, (date.fromisoformat(values["exam_date"]) - date.today()).days))
             profile = StudentProfile(**values)
             profile.validate()
             save_profile(self.path, profile)
