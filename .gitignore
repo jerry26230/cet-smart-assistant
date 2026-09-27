@@ -6,3 +6,12 @@ venv/
 user_data.json
 .test-tmp/
 .local-backups/
+.local-only/
+# 答辩材料仅留本机，防止重新混入公开插件。
+cet_smart_assistant/demo_data.py
+cet_smart_assistant/demo_ui.py
+examples/generate_demo.py
+tests/test_demo.py
+tests/verify_demo_ui.py
+docs/task010-demo.md
+docs/evidence/task010-demo-offscreen.png

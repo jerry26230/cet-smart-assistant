@@ -110,9 +110,6 @@ class ProfileDialog(QDialog):
         training_button = QPushButton("阅读语境 / 写作表达训练")
         training_button.clicked.connect(self.open_training)
         outer.addWidget(training_button)
-        demo_button = QPushButton("答辩演示（独立模拟数据）")
-        demo_button.clicked.connect(self.open_demo)
-        outer.addWidget(demo_button)
         for field in self.fields.values():
             field.textChanged.connect(self.invalidate_diagnosis)
         self.focus_selector.currentIndexChanged.connect(self.invalidate_diagnosis)
@@ -139,15 +136,6 @@ class ProfileDialog(QDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh_day)
         self.timer.start(30_000)
-
-    def open_demo(self):
-        from .demo_ui import DemoDialog
-
-        dialog = DemoDialog(self)
-        try:
-            dialog.exec()
-        finally:
-            dialog.deleteLater()
 
     def selected_date(self):
         return self.exam_date.date().toString("yyyy-MM-dd")
