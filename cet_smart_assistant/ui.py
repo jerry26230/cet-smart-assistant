@@ -80,6 +80,9 @@ class ProfileDialog(QDialog):
         vocabulary_button = QPushButton("词汇卡片")
         vocabulary_button.clicked.connect(self.open_vocabulary)
         buttons.addWidget(vocabulary_button)
+        practice_button = QPushButton("练习记录")
+        practice_button.clicked.connect(self.open_practice)
+        buttons.addWidget(practice_button)
         buttons.addWidget(close_button)
         outer.addLayout(buttons)
         for field in self.fields.values():
@@ -96,6 +99,15 @@ class ProfileDialog(QDialog):
         except DataError as error:
             self.status.setText(str(error) + "\n请先备份并修复资料文件后重新打开窗口。\n" + str(path))
             self.save_button.setEnabled(False)
+
+    def open_practice(self):
+        from .practice_ui import PracticeDialog
+
+        dialog = PracticeDialog(self, self.path)
+        try:
+            dialog.exec()
+        finally:
+            dialog.deleteLater()
 
     def open_vocabulary(self):
         from .card_ui import VocabularyDialog

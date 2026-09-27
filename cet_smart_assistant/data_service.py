@@ -42,6 +42,11 @@ def save_profile(path: Path, profile: StudentProfile) -> None:
     profile.validate()
     data = load_document(path)
     data["profile"] = asdict(profile)
+    save_document(path, data)
+
+
+def save_document(path: Path, data: dict) -> None:
+    """写入已由调用方校验的完整文档。"""
     temporary = None
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
