@@ -85,6 +85,9 @@ class ProfileDialog(QDialog):
         buttons.addWidget(practice_button)
         buttons.addWidget(close_button)
         outer.addLayout(buttons)
+        training_button = QPushButton("阅读语境 / 写作表达训练")
+        training_button.clicked.connect(self.open_training)
+        outer.addWidget(training_button)
         for field in self.fields.values():
             field.textChanged.connect(self.invalidate_diagnosis)
         self.focus_selector.currentIndexChanged.connect(self.invalidate_diagnosis)
@@ -99,6 +102,15 @@ class ProfileDialog(QDialog):
         except DataError as error:
             self.status.setText(str(error) + "\n请先备份并修复资料文件后重新打开窗口。\n" + str(path))
             self.save_button.setEnabled(False)
+
+    def open_training(self):
+        from .training_ui import TrainingDialog
+
+        dialog = TrainingDialog(self)
+        try:
+            dialog.exec()
+        finally:
+            dialog.deleteLater()
 
     def open_practice(self):
         from .practice_ui import PracticeDialog

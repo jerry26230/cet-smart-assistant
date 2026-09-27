@@ -64,7 +64,7 @@ def add_vocabulary(col, word: str, meaning: str) -> CardResult:
     return import_vocabulary(col, [(word, meaning)])
 
 
-def import_vocabulary(col, entries, deck_name=DECK_NAME, model_name=MODEL_NAME) -> CardResult:
+def import_vocabulary(col, entries, deck_name=DECK_NAME, model_name=MODEL_NAME, tags=None) -> CardResult:
     from anki.collection import AddNoteRequest, OpChanges
 
     entries = [validate_card(*entry) for entry in entries]
@@ -105,7 +105,7 @@ def import_vocabulary(col, entries, deck_name=DECK_NAME, model_name=MODEL_NAME) 
             note = col.new_note(model)
             note["Front"] = escape(word)
             note["Back"] = escape(meaning).replace("\n", "<br>")
-            note.tags = ["cet_smart_assistant", "cet6_vocabulary"]
+            note.tags = list(tags) if tags is not None else ["cet_smart_assistant", "cet6_vocabulary"]
             requests.append(AddNoteRequest(note=note, deck_id=deck_id))
         col.add_notes(requests)
         count = len(requests)

@@ -1,0 +1,16 @@
+[
+  {
+    "mode": "reading",
+    "count": 12,
+    "repeat_skipped": true,
+    "single_undo": true,
+    "rendered": true
+  },
+  {
+    "mode": "writing",
+    "count": 12,
+    "repeat_skipped": true,
+    "single_undo": true,
+    "rendered": true
+  }
+]
