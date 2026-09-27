@@ -1,6 +1,6 @@
 """专项练习记录：保留原始分数，不跨专项比较能力。"""
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import date
 from math import isfinite
 from uuid import uuid4
@@ -19,6 +19,9 @@ class PracticeRecord:
     score: float | None = None
     maximum: float | None = None
     note: str = ""
+    comparison_group: str = ""
+    comparable: bool = False
+    questions: int | None = None
 
     def validate(self):
         try:
@@ -35,6 +38,14 @@ class PracticeRecord:
             raise ValueError("请填写练习名称，最多 200 字符。")
         if not isinstance(self.note, str) or len(self.note) > 2000:
             raise ValueError("备注最多 2000 字符。")
+        if not isinstance(self.comparison_group, str) or len(self.comparison_group) > 100:
+            raise ValueError("可比组名称最多 100 字符。")
+        if type(self.comparable) is not bool:
+            raise ValueError("可比确认值无效。")
+        if self.questions is not None and (type(self.questions) is not int or not 1 <= self.questions <= 10000):
+            raise ValueError("题量应为 1～10000 的整数，或留空。")
+        if self.comparable and (not self.comparison_group.strip() or self.score is None):
+            raise ValueError("纳入趋势前，请填写可比组名称、得分和满分。")
         if (self.score is None) != (self.maximum is None):
             raise ValueError("得分与满分须同时填写，或同时留空。")
         if self.score is not None:
@@ -61,7 +72,7 @@ def read_records(path):
         try:
             if not isinstance(row, dict) or row.get("record_version") != 1:
                 raise ValueError("旧记录")
-            record = PracticeRecord(**{key: row[key] for key in PracticeRecord.__dataclass_fields__})
+            record = PracticeRecord(**{field.name: row[field.name] for field in fields(PracticeRecord) if field.name in row})
             record.validate()
             records.append(record)
         except (KeyError, TypeError, ValueError):

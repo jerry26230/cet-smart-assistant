@@ -1,0 +1,14 @@
+{
+  "feedback-before.json": {
+    "vocabulary": 24,
+    "listening": 48,
+    "reading": 24,
+    "writing": 24
+  },
+  "feedback-after.json": {
+    "vocabulary": 24,
+    "listening": 24,
+    "reading": 48,
+    "writing": 24
+  }
+}

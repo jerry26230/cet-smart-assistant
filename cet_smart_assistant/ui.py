@@ -48,7 +48,7 @@ class ProfileDialog(QDialog):
         self.focus_selector.setAccessibleName("学习重点")
         for label, value in [("均衡覆盖（默认）", "balanced"), ("参考初始关注项（小幅倾斜）", "initial"),
                              ("我确认：重点听力", "listening"), ("我确认：重点阅读", "reading"),
-                             ("我确认：重点写作翻译", "writing")]:
+                             ("我确认：重点写作翻译", "writing"), ("根据近期同类练习动态调整", "feedback")]:
             self.focus_selector.addItem(label, value)
         form.addRow("学习重点：", self.focus_selector)
         note = QLabel("四级成绩仅用于建立初始能力画像，不能准确预测六级成绩。\n后续学习计划还需结合六级练习表现调整。")
@@ -120,6 +120,10 @@ class ProfileDialog(QDialog):
             dialog.exec()
         finally:
             dialog.deleteLater()
+        # 不覆盖主窗口未保存的输入，提醒用户重新生成。
+        self.invalidate_diagnosis()
+        if self.save_button.isEnabled():
+            self.status.setText("练习窗口已关闭，请保存并生成计划以刷新最新趋势。")
 
     def open_vocabulary(self):
         from .card_ui import VocabularyDialog
@@ -147,9 +151,21 @@ class ProfileDialog(QDialog):
         self.summary_label.setText(diagnosis.summary)
         self.explanation_label.setText(diagnosis.explanation)
         plan = generate_study_plan(profile)
+        trend_text = ""
+        if profile.study_focus == "feedback":
+            from .feedback import update_plan_from_practice
+            from .practice import read_records
+
+            records, skipped = read_records(self.path)
+            feedback = update_plan_from_practice(profile, records)
+            plan = feedback.plan
+            trend_text = "\n\n近期练习趋势（仅比较同组）：\n" + "\n".join(feedback.trends)
+            if skipped:
+                trend_text += f"\n{skipped} 条旧格式或无效记录保留但未参与。"
+
         labels = {"vocabulary": "词汇", **SKILL_LABELS}
         allocation = "　".join(f"{labels[skill]} {minutes} 分钟" for skill, minutes in plan.minutes.items())
-        self.plan_label.setText(f"今日学习时间（合计 {sum(plan.minutes.values())} 分钟）\n{allocation}\n\n{plan.explanation}\n\n{plan.guidance}")
+        self.plan_label.setText(f"今日学习时间（合计 {sum(plan.minutes.values())} 分钟）\n{allocation}\n\n{plan.explanation}\n\n{plan.guidance}{trend_text}")
 
     def save(self):
         values = {}

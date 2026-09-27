@@ -16,7 +16,7 @@ class StudentProfile:
     study_focus: str = "balanced"
 
     def validate(self) -> None:
-        if self.study_focus not in ("balanced", "initial", "listening", "reading", "writing"):
+        if self.study_focus not in ("balanced", "initial", "listening", "reading", "writing", "feedback"):
             raise ValueError("请选择有效的学习重点。")
         limits = {
             "cet4_total": ("四级总分", 0, 710),
