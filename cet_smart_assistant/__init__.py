@@ -26,3 +26,10 @@ def open_assistant() -> None:
 action = QAction("CET 智能备考助手", mw)
 qconnect(action.triggered, open_assistant)
 mw.form.menuTools.addAction(action)
+
+# 对已有的插件词库卡片也即时生效，无需重新导入或更改笔记。
+from aqt import gui_hooks
+from .word_hooks import append_word_guide, handle_word_message
+
+gui_hooks.card_will_show.append(append_word_guide)
+gui_hooks.webview_did_receive_js_message.append(handle_word_message)

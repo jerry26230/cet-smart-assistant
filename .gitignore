@@ -4,6 +4,8 @@ __pycache__/
 .venv/
 venv/
 user_data.json
+word_guides.json
+ai_settings.json
 .test-tmp/
 .local-backups/
 .local-only/

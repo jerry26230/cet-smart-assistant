@@ -110,6 +110,9 @@ class ProfileDialog(QDialog):
         training_button = QPushButton("阅读语境 / 写作表达训练")
         training_button.clicked.connect(self.open_training)
         outer.addWidget(training_button)
+        word_button = QPushButton("单词用途 / AI 用法助手")
+        word_button.clicked.connect(self.open_word_guide)
+        outer.addWidget(word_button)
         for field in self.fields.values():
             field.textChanged.connect(self.invalidate_diagnosis)
         self.focus_selector.currentIndexChanged.connect(self.invalidate_diagnosis)
@@ -139,6 +142,15 @@ class ProfileDialog(QDialog):
 
     def selected_date(self):
         return self.exam_date.date().toString("yyyy-MM-dd")
+
+    def open_word_guide(self):
+        from .word_ui import WordGuideDialog
+
+        dialog = WordGuideDialog(self, self.path.parent / "word_guides.json")
+        try:
+            dialog.exec()
+        finally:
+            dialog.deleteLater()
 
     def select_exam(self):
         day = self.exam_selector.currentData()
