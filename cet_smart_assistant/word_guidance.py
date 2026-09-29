@@ -139,4 +139,15 @@ def lookup_guide(word, path=None):
 
 
 def render_guide(guide, source=SOURCE):
-    return '<section class="cet-word-guide" style="text-align:left;border-top:1px solid #888;margin-top:20px;padding:14px;line-height:1.6"><b>这个词怎么学、怎么用</b><br>' + escape(guide_text(guide, source)).replace("\n", "<br>") + '</section>'
+    guide.validate()
+    def safe(value):
+        return escape(value).replace("\n", "<br>")
+    return (f'<section class="cet-word-guide"><span class="cet-focus">{safe(LABELS[guide.focus])}</span>'
+        f'<p class="cet-reason">{safe(guide.reason)}</p><div class="cet-grid">'
+        f'<section class="cet-panel"><h3>阅读 · 看懂语境</h3><p class="cet-example">{safe(guide.reading_example)}</p>'
+        f'<p class="cet-note">{safe(guide.reading_meaning)}</p></section>'
+        f'<section class="cet-panel"><h3>写作 · 学会表达</h3><p class="cet-example">{safe(guide.writing_example)}</p>'
+        f'<p class="cet-note">{safe(guide.writing_tip)}</p></section></div>'
+        f'<section class="cet-alternative"><h3>表达替换 · 留意适用条件</h3>{safe(guide.alternative)}</section>'
+        f'<p class="cet-caution"><strong>易错提醒</strong> · {safe(guide.caution)}</p>'
+        f'<details><summary>查看内容来源</summary><p>{safe(source)}</p></details></section>')

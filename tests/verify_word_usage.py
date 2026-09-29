@@ -55,7 +55,9 @@ with tempfile.TemporaryDirectory() as folder:
                 original = card.answer()
                 enhanced = append_word_guide(original, card, "reviewAnswer")
                 assert "cet-word-guide" in enhanced
-                assert append_word_guide("question", card, "reviewQuestion") == "question"
+                question = append_word_guide("question", card, "reviewQuestion")
+                assert "cet-card" in question and "先回想" in question
+                assert "cet-word-guide" not in question and "beneficial" not in question
                 assert card.answer() == original
                 if card.note()["Front"] == "abandon":
                     assert "先练阅读识别" in enhanced and "forget" in enhanced
