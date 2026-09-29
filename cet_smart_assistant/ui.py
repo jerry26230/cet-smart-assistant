@@ -107,6 +107,9 @@ class ProfileDialog(QDialog):
         buttons.addWidget(practice_button)
         buttons.addWidget(close_button)
         outer.addLayout(buttons)
+        daily_button = QPushButton("开始今日任务 · 阅读识别 / 写作运用")
+        daily_button.clicked.connect(self.open_daily)
+        outer.addWidget(daily_button)
         training_button = QPushButton("阅读语境 / 写作表达训练")
         training_button.clicked.connect(self.open_training)
         outer.addWidget(training_button)
@@ -142,6 +145,30 @@ class ProfileDialog(QDialog):
 
     def selected_date(self):
         return self.exam_date.date().toString("yyyy-MM-dd")
+
+    def open_daily(self):
+        from .daily_ui import DailyDialog
+        from .feedback import update_plan_from_practice
+        from .practice import read_records
+        if self.rendered_profile is None:
+            showWarning("请先保存并生成计划，再打开今日任务。", parent=self)
+            return
+        try:
+            profile = self.rendered_profile
+            if profile.remaining_days() <= 0:
+                showWarning("本场备考已结束，请确认新场次后保存。", parent=self)
+                return
+            plan = generate_study_plan(profile)
+            if profile.study_focus == "feedback":
+                records, _ = read_records(self.path)
+                plan = update_plan_from_practice(profile, records).plan
+            dialog = DailyDialog(self, self.path, plan)
+            try:
+                dialog.exec()
+            finally:
+                dialog.deleteLater()
+        except DataError as error:
+            showWarning(str(error), parent=self)
 
     def open_word_guide(self):
         from .word_ui import WordGuideDialog
