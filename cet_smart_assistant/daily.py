@@ -30,6 +30,8 @@ def load_days(path):
                             or item["rating"] not in (None, *RATINGS) or not isinstance(item["reason"], str)):
                         raise ValueError()
                     seen.add(item["word"])
+                    if not isinstance(item.get("draft", ""), str) or len(item.get("draft", "")) > 5000:
+                        raise ValueError()
                 if skill in MODES and (not task["items"] or task["done"] != all(i["rating"] is not None for i in task["items"])):
                     raise ValueError()
     except (ValueError, TypeError, KeyError):
@@ -103,3 +105,32 @@ def exercise(word, skill):
     if skill == "reading":
         return f"{sentence}\n\n{word} 在这句话中是什么意思？", f"{meaning}\n\n{usage}"
     return prompt, f"参考：{answer}\n{completed}\n\n{usage}\n其他符合语境、语法正确的表达也可能成立。"
+
+
+def save_draft(path, day, skill, word, draft):
+    """Drafts may be flushed after midnight to their original task, never as results."""
+    if not isinstance(draft, str) or len(draft) > 5000:
+        raise DataError("作答草稿最多 5000 字，请缩短后保存。")
+    document, days = load_days(path)
+    try:
+        item = next(i for i in days[day][skill]["items"] if i["word"] == word)
+    except (KeyError, StopIteration):
+        raise DataError("原任务不存在，无法保存草稿。") from None
+    if item.get("draft", "") != draft:
+        item["draft"] = draft
+        save_document(path, document)
+
+
+def undo_result(path, day, skill, word=None, today=None):
+    if day != (today or date.today()).isoformat():
+        raise DataError("只能撤销今天的评价，请重新打开今日任务。")
+    document, days = load_days(path)
+    try:
+        task = days[day][skill]
+        if skill in MODES:
+            item = next(i for i in task["items"] if i["word"] == word)
+            item["rating"] = None
+        task["done"] = False
+    except (KeyError, StopIteration):
+        raise DataError("任务不存在，请重新打开今日任务。") from None
+    save_document(path, document)

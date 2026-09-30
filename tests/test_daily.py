@@ -4,12 +4,30 @@ from pathlib import Path
 import tempfile
 import unittest
 import test_profile
-from cet_core.daily import ensure_day, load_days, record_result, select_words
+from cet_core.daily import ensure_day, load_days, record_result, select_words, save_draft, undo_result
 from cet_core.data_service import DataError
 from cet_core.recommendation import StudyPlan
 
 
 class DailyTests(unittest.TestCase):
+    def test_draft_and_undo_preserve_other_track(self):
+        ensure_day(self.path, self.plan, self.day)
+        day = self.day.isoformat()
+        save_draft(self.path, day, 'writing', 'contribute', 'my sentence')
+        record_result(self.path, day, 'reading', 'contribute', 'good', self.day)
+        record_result(self.path, day, 'writing', 'contribute', 'again', self.day)
+        undo_result(self.path, day, 'writing', 'contribute', self.day)
+        tasks = load_days(self.path)[1][day]
+        self.assertEqual(tasks['reading']['items'][0]['rating'], 'good')
+        self.assertIsNone(tasks['writing']['items'][0]['rating'])
+        self.assertEqual(tasks['writing']['items'][0]['draft'], 'my sentence')
+        before = self.path.read_bytes()
+        with self.assertRaises(DataError):
+            save_draft(self.path, day, 'writing', 'contribute', 'a' * 5001)
+        with self.assertRaises(DataError):
+            undo_result(self.path, day, 'reading', 'contribute', self.day + timedelta(days=1))
+        self.assertEqual(before, self.path.read_bytes())
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

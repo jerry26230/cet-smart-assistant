@@ -21,6 +21,9 @@ with tempfile.TemporaryDirectory() as folder:
     assert not any(button.isEnabled() for button in dialog.ratings)
     assert 'contributes to' not in dialog.prompt.toPlainText()
     dialog.response.setPlainText('促成')
+    dialog.list.setCurrentRow(3)
+    dialog.list.setCurrentRow(2)
+    assert dialog.response.toPlainText() == '促成'
     dialog.reveal.click()
     assert all(button.isEnabled() for button in dialog.ratings)
     dialog.ratings[2].click()
@@ -38,6 +41,14 @@ with tempfile.TemporaryDirectory() as folder:
     dialog.reject()
     reopened = DailyDialog(None, path, plan)
     assert '已完成 3/4' in reopened.summary.text()
+    assert reopened.list.currentRow() == 1
+    reopened.list.setCurrentRow(2)
+    assert reopened.response.toPlainText() == '促成'
+    reopened.undo.click()
+    assert reopened.response.isEnabled()
+    assert not any(button.isEnabled() for button in reopened.ratings)
+    reopened.reveal.click()
+    reopened.ratings[2].click()
     reopened.list.setCurrentRow(3)
     reopened.reveal.click()
     reopened.show()
