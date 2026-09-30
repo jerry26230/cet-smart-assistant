@@ -17,3 +17,7 @@
 ## 0.1.2（2026-09-30）
 
 新增可选错因、同方向复练提示及第二组语境。当前推荐 downloads/cet-smart-assistant-0.1.2.ankiaddon。89 项测试与实际 Anki 清单/词库验证通过；安装方式不变，旧记录兼容。
+
+## 0.1.3（2026-09-30）
+
+针对独立测试反馈修复空任务输入，小屏滚动、关闭入口和键盘默认按钮。推荐 downloads/cet-smart-assistant-0.1.3.ankiaddon。89 项单元测试、扩展 Qt 交互、Anki 包验证通过，详见 ux-review-013.md。

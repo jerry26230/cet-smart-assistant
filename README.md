@@ -26,11 +26,11 @@
 
 ### 推荐：直接安装插件包
 
-下载 [CET 智能备考助手 0.1.2 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.2.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
+下载 [CET 智能备考助手 0.1.3 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.3.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
 
 不用解压，也不用安装 Python。已有手动安装版使用相同目录标识，更新同一插件；学习资料位于账户目录，包内不含个人资料。当前为体验改进版本；仅验证 Windows + Anki 26.9.3，不适用于手机端，尚未发布到 AnkiWeb，后续更新需要下载新包安装。
 
-[校验值](downloads/cet-smart-assistant-0.1.2.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
+[校验值](downloads/cet-smart-assistant-0.1.3.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
 
 ### 源码安装
 

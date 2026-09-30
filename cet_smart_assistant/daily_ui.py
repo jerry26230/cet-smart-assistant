@@ -1,6 +1,6 @@
 """Actionable daily tasks without taking over Anki scheduling."""
 from datetime import date
-from aqt.qt import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QPlainTextEdit, QTimer, QProgressBar, QComboBox
+from aqt.qt import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QPlainTextEdit, QTimer, QProgressBar, QComboBox, QScrollArea, QWidget
 from .practice_variants import CAUSES
 from aqt.utils import showWarning
 from .daily import LABELS, RATINGS, MODES, ensure_day, load_days, record_result, exercise, save_draft, undo_result
@@ -14,7 +14,7 @@ class DailyDialog(QDialog):
         self.active = None
         self.dirty = False
         self.setWindowTitle("今日任务 · 认识与会用")
-        self.resize(760, 800)
+        self.resize(760, 680)
         self.setStyleSheet("""
             QDialog { font-size: 14px; }
             QListWidget, QPlainTextEdit { border: 1px solid palette(mid); border-radius: 10px; padding: 12px; }
@@ -22,7 +22,13 @@ class DailyDialog(QDialog):
             QPushButton { padding: 9px 14px; border: 1px solid palette(mid); border-radius: 8px; }
             QPushButton:hover { background: palette(alternate-base); }
         """)
-        layout = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        content = QWidget()
+        self.scroll.setWidget(content)
+        outer.addWidget(self.scroll)
+        layout = QVBoxLayout(content)
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
         self.summary = QLabel()
@@ -72,10 +78,16 @@ class DailyDialog(QDialog):
         navigation.addWidget(self.next_button)
         layout.addLayout(navigation)
         self.draft_status = QLabel("草稿仅保存在当前账户，不发送到 AI。")
+        self.draft_status.setWordWrap(True)
         layout.addWidget(self.draft_status)
-        close = QPushButton("关闭")
+        close = QPushButton("保存草稿并关闭")
+        self.close_button = close
         close.clicked.connect(self.reject)
-        layout.addWidget(close)
+        outer.addWidget(close)
+        # Enter in lists/combos must not activate an unrelated default action.
+        for button in self.findChildren(QPushButton):
+            button.setAutoDefault(False)
+            button.setDefault(False)
         self.list.currentRowChanged.connect(self.select)
         self.draft_timer = QTimer(self)
         self.draft_timer.setSingleShot(True)
@@ -122,6 +134,7 @@ class DailyDialog(QDialog):
             self.list.blockSignals(False)
             return
         self.active = None
+        self.draft_status.setText("草稿仅保存在当前账户，不发送到 AI。")
         self.response.blockSignals(True)
         self.response.clear()
         self.response.blockSignals(False)
@@ -133,12 +146,15 @@ class DailyDialog(QDialog):
         for button in self.ratings:
             button.setEnabled(False)
         if index < 0:
+            self.response.setEnabled(False)
             return
         skill, item, task = self.rows[index]
         self.active_index = index
         self.active = (skill, item["word"]) if item else None
         self.response.blockSignals(True)
         self.response.setPlainText(item.get("draft", "") if item else "")
+        if item and item.get("draft"):
+            self.draft_status.setText("已恢复这道题的本机草稿。")
         self.response.blockSignals(False)
         self.undo.setEnabled(item["rating"] is not None if item else task["done"])
         self.response.setEnabled(item is not None and item["rating"] is None)
