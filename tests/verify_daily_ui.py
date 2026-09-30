@@ -31,10 +31,12 @@ with tempfile.TemporaryDirectory() as folder:
     dialog.list.setCurrentRow(3)
     assert '参考：' not in dialog.prompt.toPlainText()
     dialog.reveal.click()
+    dialog.cause.setCurrentIndex(dialog.cause.findData('collocation'))
     dialog.ratings[0].click()
     tasks = load_days(path)[1][dialog.day]
     assert tasks['reading']['items'][0]['rating'] == 'good'
     assert tasks['writing']['items'][0]['rating'] == 'again'
+    assert tasks['writing']['items'][0]['cause'] == 'collocation'
     dialog.list.setCurrentRow(0)
     dialog.complete.click()
     assert not dialog.complete.isEnabled()

@@ -1,6 +1,7 @@
 """Actionable daily tasks without taking over Anki scheduling."""
 from datetime import date
-from aqt.qt import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QPlainTextEdit, QTimer, QProgressBar
+from aqt.qt import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QPlainTextEdit, QTimer, QProgressBar, QComboBox
+from .practice_variants import CAUSES
 from aqt.utils import showWarning
 from .daily import LABELS, RATINGS, MODES, ensure_day, load_days, record_result, exercise, save_draft, undo_result
 from .data_service import DataError
@@ -46,6 +47,11 @@ class DailyDialog(QDialog):
         self.reveal = QPushButton("显示参考答案")
         self.reveal.clicked.connect(self.show_answer)
         layout.addWidget(self.reveal)
+        self.cause = QComboBox()
+        self.cause.setAccessibleName("可选错因")
+        for key, label in CAUSES.items():
+            self.cause.addItem(label, key)
+        layout.addWidget(self.cause)
         row = QHBoxLayout()
         self.ratings = []
         for value, label in RATINGS.items():
@@ -120,6 +126,8 @@ class DailyDialog(QDialog):
         self.response.clear()
         self.response.blockSignals(False)
         self.undo.setEnabled(False)
+        self.cause.setEnabled(False)
+        self.cause.setCurrentIndex(0)
         self.reveal.setEnabled(False)
         self.complete.setEnabled(False)
         for button in self.ratings:
@@ -135,7 +143,10 @@ class DailyDialog(QDialog):
         self.undo.setEnabled(item["rating"] is not None if item else task["done"])
         self.response.setEnabled(item is not None and item["rating"] is None)
         if item:
-            question, self.answer = exercise(item["word"], skill)
+            self.cause.setCurrentIndex(self.cause.findData(item.get("cause", "")))
+            question, self.answer = exercise(item["word"], skill, item.get("variant", 0))
+            if item.get("hint"):
+                question = "复练提示：" + item["hint"] + "\n\n" + question
             result = f"\n已记录：{RATINGS[item['rating']]}" if item["rating"] else ""
             self.question = f"推荐依据：{item['reason']}\n\n{question}{result}"
             self.prompt.setPlainText(self.question)
@@ -149,6 +160,7 @@ class DailyDialog(QDialog):
     def show_answer(self):
         skill, item, task = self.rows[self.list.currentRow()]
         self.prompt.setPlainText(self.question + "\n\n—— 参考与说明 ——\n" + self.answer)
+        self.cause.setEnabled(item["rating"] is None)
         for button in self.ratings:
             button.setEnabled(item["rating"] is None)
 
@@ -157,7 +169,7 @@ class DailyDialog(QDialog):
             return
         skill, item, task = self.rows[self.list.currentRow()]
         try:
-            record_result(self.path, self.day, skill, item["word"] if item else None, rating)
+            record_result(self.path, self.day, skill, item["word"] if item else None, rating, cause=self.cause.currentData())
             self.refresh()
         except DataError as error:
             showWarning(str(error), parent=self)

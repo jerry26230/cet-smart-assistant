@@ -10,6 +10,27 @@ from cet_core.recommendation import StudyPlan
 
 
 class DailyTests(unittest.TestCase):
+    def test_variant_rotation_and_cause_are_track_specific(self):
+        from cet_core.daily import exercise
+        from cet_core.practice_variants import VARIANTS
+        ensure_day(self.path, self.plan, self.day)
+        record_result(self.path, self.day.isoformat(), 'writing', 'contribute', 'again', self.day, cause='collocation')
+        tomorrow = ensure_day(self.path, self.plan, self.day + timedelta(days=1))
+        item = tomorrow['writing']['items'][0]
+        self.assertEqual(item['word'], 'contribute')
+        self.assertEqual(item['variant'], 1)
+        self.assertIn('介词', item['hint'])
+        self.assertEqual(tomorrow['reading']['items'][0]['variant'], 0)
+        for word in VARIANTS:
+            for track in ('reading', 'writing'):
+                self.assertNotEqual(exercise(word, track, 0)[0], exercise(word, track, 1)[0])
+                question, answer = exercise(word, track, 1)
+                self.assertTrue(answer)
+                if track == 'writing':
+                    self.assertIn('___', question)
+        third = ensure_day(self.path, self.plan, self.day + timedelta(days=2))
+        self.assertEqual(third['writing']['items'][0]['variant'], 1)  # 未完成不推进轮换。
+
     def test_draft_and_undo_preserve_other_track(self):
         ensure_day(self.path, self.plan, self.day)
         day = self.day.isoformat()

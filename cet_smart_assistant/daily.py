@@ -3,6 +3,7 @@ from datetime import date
 
 from .data_service import DataError, load_document, save_document
 from .training import EXAMPLES, MODES
+from .practice_variants import VARIANTS, CAUSES, HINTS
 
 WORDS = {row[0]: row for row in EXAMPLES}
 RATINGS = {"again": "还不会", "unsure": "不熟练", "good": "本次独立完成"}
@@ -30,6 +31,10 @@ def load_days(path):
                             or item["rating"] not in (None, *RATINGS) or not isinstance(item["reason"], str)):
                         raise ValueError()
                     seen.add(item["word"])
+                    if item.get("cause", "") not in CAUSES or item.get("hint", "") not in ("", *HINTS.values()):
+                        raise ValueError()
+                    if type(item.get("variant", 0)) is not int or item.get("variant", 0) not in (0, 1):
+                        raise ValueError()
                     if not isinstance(item.get("draft", ""), str) or len(item.get("draft", "")) > 5000:
                         raise ValueError()
                 if skill in MODES and (not task["items"] or task["done"] != all(i["rating"] is not None for i in task["items"])):
@@ -41,12 +46,14 @@ def load_days(path):
 
 def select_words(days, skill, today, count):
     latest = {}
+    previous_items = {}
     for day, tasks in sorted(days.items()):
         if day >= today.isoformat():
             continue
         for item in tasks.get(skill, {}).get("items", []):
             if item["rating"]:
                 latest[item["word"]] = (day, item["rating"])
+                previous_items[item["word"]] = item
     def rank(word):
         day, rating = latest.get(word, ("", None))
         return ({"again": 0, None: 1, "unsure": 2, "good": 3}[rating], day, list(WORDS).index(word))
@@ -54,7 +61,13 @@ def select_words(days, skill, today, count):
     for word in sorted(WORDS, key=rank)[:count]:
         previous = latest.get(word)
         reason = "这个方向尚无练习记录" if not previous else f"{previous[0]} · {RATINGS[previous[1]]}"
-        selected.append(dict(word=word, reason=reason, rating=None))
+        last = previous_items.get(word, {})
+        cause = last.get("cause", "") if last.get("rating") != "good" else ""
+        if cause:
+            reason += "；上次错因：" + CAUSES[cause]
+        selected.append(dict(word=word, reason=reason, rating=None,
+                             variant=1 - last.get("variant", 0) if last else 0,
+                             hint=HINTS.get(cause, "")))
     return selected
 
 
@@ -78,20 +91,21 @@ def ensure_day(path, plan, today=None):
     return tasks
 
 
-def record_result(path, day, skill, word=None, rating=None, today=None):
+def record_result(path, day, skill, word=None, rating=None, today=None, cause=""):
     if day != (today or date.today()).isoformat():
         raise DataError("日期已变化，请关闭并重新打开今日任务。")
     document, days = load_days(path)
     try:
         task = days[day][skill]
         if skill in MODES:
-            if rating not in RATINGS:
+            if rating not in RATINGS or cause not in CAUSES:
                 raise ValueError()
             item = next(item for item in task["items"] if item["word"] == word)
             # One result per task item; reopening or double-clicking cannot inflate history.
             if item["rating"] is not None:
                 return
             item["rating"] = rating
+            item["cause"] = cause if rating != "good" else ""
             task["done"] = all(i["rating"] is not None for i in task["items"])
         else:
             task["done"] = True
@@ -100,8 +114,8 @@ def record_result(path, day, skill, word=None, rating=None, today=None):
     save_document(path, document)
 
 
-def exercise(word, skill):
-    word, sentence, meaning, prompt, answer, completed, usage = WORDS[word]
+def exercise(word, skill, variant=0):
+    sentence, meaning, prompt, answer, completed, usage = VARIANTS[word] if variant == 1 else WORDS[word][1:]
     if skill == "reading":
         return f"{sentence}\n\n{word} 在这句话中是什么意思？", f"{meaning}\n\n{usage}"
     return prompt, f"参考：{answer}\n{completed}\n\n{usage}\n其他符合语境、语法正确的表达也可能成立。"
@@ -130,6 +144,7 @@ def undo_result(path, day, skill, word=None, today=None):
         if skill in MODES:
             item = next(i for i in task["items"] if i["word"] == word)
             item["rating"] = None
+            item.pop("cause", None)
         task["done"] = False
     except (KeyError, StopIteration):
         raise DataError("任务不存在，请重新打开今日任务。") from None

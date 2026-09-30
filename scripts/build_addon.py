@@ -7,7 +7,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "cet_smart_assistant"
 MODULES = """__init__ ai_service anki_service builtin_vocab card_design card_ui daily
-daily_ui data_service exam_calendar feedback models practice practice_ui
+daily_ui data_service exam_calendar feedback models practice practice_ui practice_variants
 recommendation training training_ui ui word_guidance word_hooks word_import word_ui""".split()
 FILES = [*(name + ".py" for name in MODULES), "manifest.json", *(
     "vocabularies/" + name for name in
