@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import verify_anki_backend
 from aqt.qt import QApplication, QFont, QFontDatabase, Qt
 from PyQt6.QtTest import QTest
-from cet_core.daily_ui import DailyDialog
+from cet_core.daily_ui import DailyDialog, WeeklyReviewDialog
 from cet_core.daily import load_days
 from cet_core.recommendation import StudyPlan
 from cet_core.data_service import DataError
@@ -80,6 +80,13 @@ with tempfile.TemporaryDirectory() as folder:
     app.processEvents()
     assert reopened.grab().save(str(Path(__file__).resolve().parents[1] / 'docs/evidence/daily-tasks-offscreen.png'))
     reopened.reject()
+    review = WeeklyReviewDialog(None, path)
+    assert '本次独立完成' in review.report.toPlainText()
+    assert '不代表学习时长或掌握程度' in review.report.toPlainText()
+    review.show()
+    app.processEvents()
+    assert review.grab().save(str(Path(__file__).resolve().parents[1] / 'docs/evidence/weekly-review-offscreen.png'))
+    review.reject()
     empty = DailyDialog(None, Path(folder) / 'empty.json', StudyPlan({}, '', ''))
     assert not empty.response.isEnabled()
     empty.reject()

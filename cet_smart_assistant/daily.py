@@ -4,6 +4,7 @@ from datetime import date
 from .data_service import DataError, load_document, save_document
 from .training import EXAMPLES, MODES
 from .practice_variants import VARIANTS, CAUSES, HINTS
+from collections import Counter
 
 WORDS = {row[0]: row for row in EXAMPLES}
 RATINGS = {"again": "还不会", "unsure": "不熟练", "good": "本次独立完成"}
@@ -149,3 +150,66 @@ def undo_result(path, day, skill, word=None, today=None):
     except (KeyError, StopIteration):
         raise DataError("任务不存在，请重新打开今日任务。") from None
     save_document(path, document)
+
+
+def weekly_review(path, today=None):
+    """Describe recent activity and self-reported practice needs, never a skill score."""
+    today = today or date.today()
+    _, days = load_days(path)
+    start = today.fromordinal(today.toordinal() - 6)
+    period = {day: tasks for day, tasks in days.items()
+              if start.isoformat() <= day <= today.isoformat()}
+    done_days = set()
+    planned = completed = 0
+    tracks = {skill: Counter() for skill in MODES}
+    causes = {skill: Counter() for skill in MODES}
+    words = {skill: Counter() for skill in MODES}
+    for day, tasks in period.items():
+        for skill, task in tasks.items():
+            entries = task["items"] or [None]
+            for item in entries:
+                planned += 1
+                is_done = item["rating"] is not None if item else task["done"]
+                completed += bool(is_done)
+                if is_done:
+                    done_days.add(day)
+                if item and item["rating"]:
+                    tracks[skill][item["rating"]] += 1
+                    words[skill][item["word"]] += 1
+                    cause = item.get("cause", "")
+                    if item["rating"] != "good" and cause:
+                        causes[skill][cause] += 1
+
+    total_items = sum(sum(result.values()) for result in tracks.values())
+    lines = [f"本周学习回顾 · {start.isoformat()} 至 {today.isoformat()}",
+             f"有练习记录的天数：{len(done_days)} / 7",
+             f"每日任务完成：{completed} / {planned} 项（按任务数统计，不代表学习时长或掌握程度）"]
+    for skill in MODES:
+        result, errors = tracks[skill], causes[skill]
+        label = MODES[skill]
+        lines.append(f"\n{label}：自评 {sum(result.values())} 次；本次独立完成 {result['good']} 次，"
+                     f"不熟练 {result['unsure']} 次，还不会 {result['again']} 次。")
+        if errors:
+            lines.append("常见错因：" + "、".join(f"{CAUSES[key].split('（')[0]} {count} 次"
+                                                    for key, count in errors.most_common(3)))
+            repeated = [word for word, count in words[skill].most_common() if count > 1 and
+                        any(entry.get("word") == word and entry.get("cause") in errors
+                            for tasks in period.values() for task in tasks.values() for entry in task["items"])]
+            if repeated:
+                lines.append("重复遇到的词：" + "、".join(repeated[:5]))
+        else:
+            lines.append("本周没有留下错因记录；评价可以跳过错因。")
+    if not total_items:
+        lines.append("\n这 7 天还没有阅读或写作词汇自评。打开今日任务完成一项练习后，这里会出现个人复盘线索。")
+    else:
+        combined = Counter()
+        for counts in causes.values():
+            combined.update(counts)
+        if combined:
+            cause, count = combined.most_common(1)[0]
+            lines.append(f"\n下周建议：先复练“{CAUSES[cause]}”相关内容（本周自选 {count} 次）；"
+                         "这反映练习中的自我反馈，不是考试能力诊断。")
+        else:
+            lines.append("\n下周建议：保持阅读识别和写作运用两种练习；目前没有重复错因可供定向建议。")
+    lines.append("\n数据仅统计本机每日任务记录；预算分钟不等于实际用时，自评不能替代考试成绩。")
+    return "\n".join(lines)

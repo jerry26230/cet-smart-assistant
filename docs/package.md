@@ -21,3 +21,7 @@
 ## 0.1.3（2026-09-30）
 
 针对独立测试反馈修复空任务输入，小屏滚动、关闭入口和键盘默认按钮。推荐 downloads/cet-smart-assistant-0.1.3.ankiaddon。89 项单元测试、扩展 Qt 交互、Anki 包验证通过，详见 ux-review-013.md。
+
+## 0.1.4（2026-10-09）
+
+新增主窗口“本周学习回顾”。当前安装包为 downloads/cet-smart-assistant-0.1.4.ankiaddon。91 项测试通过，真实 Qt 与 Anki 清单/词库验证完成。

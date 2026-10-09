@@ -4,12 +4,36 @@ from pathlib import Path
 import tempfile
 import unittest
 import test_profile
-from cet_core.daily import ensure_day, load_days, record_result, select_words, save_draft, undo_result
+from cet_core.daily import ensure_day, load_days, record_result, select_words, save_draft, undo_result, weekly_review
 from cet_core.data_service import DataError
 from cet_core.recommendation import StudyPlan
 
 
 class DailyTests(unittest.TestCase):
+    def test_weekly_review_is_activity_summary_not_score(self):
+        for offset in (0, 1):
+            day = self.day + timedelta(days=offset)
+            tasks = ensure_day(self.path, self.plan, day)
+            read = tasks['reading']['items'][0]['word']
+            write = tasks['writing']['items'][0]['word']
+            record_result(self.path, day.isoformat(), 'reading', read, 'again', day, cause='meaning')
+            record_result(self.path, day.isoformat(), 'writing', write, 'unsure', day, cause='collocation')
+        result = weekly_review(self.path, self.day + timedelta(days=1))
+        self.assertIn('有练习记录的天数：2 / 7', result)
+        self.assertIn('阅读语境：自评 2 次', result)
+        self.assertIn('写作表达：自评 2 次', result)
+        self.assertIn('词义 / 语境没理解', result)
+        self.assertIn('搭配 / 介词不熟', result)
+        self.assertIn('不代表学习时长或掌握程度', result)
+        self.assertNotIn('能力分', result)
+
+    def test_weekly_review_empty_and_seven_day_boundary(self):
+        self.assertIn('还没有阅读或写作词汇自评', weekly_review(self.path, self.day))
+        old = self.day - timedelta(days=7)
+        task = ensure_day(self.path, self.plan, old)
+        record_result(self.path, old.isoformat(), 'reading', task['reading']['items'][0]['word'], 'good', old)
+        self.assertIn('还没有阅读或写作词汇自评', weekly_review(self.path, self.day))
+
     def test_variant_rotation_and_cause_are_track_specific(self):
         from cet_core.daily import exercise
         from cet_core.practice_variants import VARIANTS

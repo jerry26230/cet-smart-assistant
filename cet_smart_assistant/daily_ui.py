@@ -3,7 +3,7 @@ from datetime import date
 from aqt.qt import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QPlainTextEdit, QTimer, QProgressBar, QComboBox, QScrollArea, QWidget
 from .practice_variants import CAUSES
 from aqt.utils import showWarning
-from .daily import LABELS, RATINGS, MODES, ensure_day, load_days, record_result, exercise, save_draft, undo_result
+from .daily import LABELS, RATINGS, MODES, ensure_day, load_days, record_result, exercise, save_draft, undo_result, weekly_review
 from .data_service import DataError
 
 
@@ -235,3 +235,20 @@ class DailyDialog(QDialog):
         if self.flush_draft():
             self.draft_timer.stop()
             super().reject()
+
+
+class WeeklyReviewDialog(QDialog):
+    def __init__(self, parent, path):
+        super().__init__(parent)
+        self.setWindowTitle("本周学习回顾")
+        self.resize(620, 560)
+        layout = QVBoxLayout(self)
+        self.report = QPlainTextEdit()
+        self.report.setReadOnly(True)
+        self.report.setAccessibleName("本周学习回顾内容")
+        self.report.setPlainText(weekly_review(path))
+        layout.addWidget(self.report)
+        close = QPushButton("关闭")
+        close.clicked.connect(self.reject)
+        close.setAutoDefault(False)
+        layout.addWidget(close)

@@ -110,6 +110,9 @@ class ProfileDialog(QDialog):
         daily_button = QPushButton("开始今日任务 · 阅读识别 / 写作运用")
         daily_button.clicked.connect(self.open_daily)
         outer.addWidget(daily_button)
+        weekly_button = QPushButton("本周学习回顾")
+        weekly_button.clicked.connect(self.open_weekly_review)
+        outer.addWidget(weekly_button)
         training_button = QPushButton("阅读语境 / 写作表达训练")
         training_button.clicked.connect(self.open_training)
         outer.addWidget(training_button)
@@ -163,6 +166,17 @@ class ProfileDialog(QDialog):
                 records, _ = read_records(self.path)
                 plan = update_plan_from_practice(profile, records).plan
             dialog = DailyDialog(self, self.path, plan)
+            try:
+                dialog.exec()
+            finally:
+                dialog.deleteLater()
+        except DataError as error:
+            showWarning(str(error), parent=self)
+
+    def open_weekly_review(self):
+        from .daily_ui import WeeklyReviewDialog
+        try:
+            dialog = WeeklyReviewDialog(self, self.path)
             try:
                 dialog.exec()
             finally:
