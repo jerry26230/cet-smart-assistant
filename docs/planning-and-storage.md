@@ -21,8 +21,8 @@
 - 每个 Anki 账户单独保存：`<Anki 账户目录>/cet_smart_assistant/user_data.json`。
 - 本机验证路径：`%APPDATA%\Anki2\账户 1\cet_smart_assistant\user_data.json`。
 - 保存采用同目录临时文件加原子替换，保留已有练习历史。读取损坏或不支持版本的文件时禁用保存，原文件保持不变。请备份后修复资料文件并重新打开窗口。
-- 资料不通过 AnkiWeb 同步，也不包含在本项目 Git 中；备份时请单独复制资料目录。
-- 当前记录的是手动输入的剩余天数，尚不自动随日期递减。
+- 资料不通过 AnkiWeb 同步，也不包含在本项目 Git 中；可从助手窗口导出 `user_data.json` 与已保存的 `word_guides.json`。ZIP 未加密，需妥善保管；Anki 卡片仍需使用 Anki 集合备份。
+- 新资料保存考试日期并按本机日期自动计算倒计时；旧资料首次升级时需要用户确认考试日期。`days_remaining` 保留作旧字段兼容，不驱动新计划。
 
 
 ## 动态模式补充

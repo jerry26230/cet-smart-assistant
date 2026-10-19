@@ -18,7 +18,8 @@
 | 内置词库 | 四级 3815 词、六级 5371 词、雅思 4974 词，离线选择即可建卡 |
 | 批量导入 | CSV / TSV / TXT 文件，或直接粘贴 Excel 两列；导入前预览和检查错误 |
 | 卡片保护 | 同库查重、保留已有释义、输入转义、模板冲突保护、整批撤销 |
-| 验证记录 | 91 项单元测试；真实 Anki 后端批量建卡、重复导入及撤销验证 |
+| 本机资料备份 | 一键导出学习资料与已保存词语用法 ZIP；不含 Anki 卡片或复习进度 |
+| 验证记录 | 95 项单元测试；真实 Anki 后端批量建卡、重复导入及撤销验证 |
 
 [查看历次改进](docs/change-summary.md) · [详细规则](docs/planning-and-storage.md) · [验证报告](docs/builtin-vocabulary-verification.md)
 
@@ -26,11 +27,11 @@
 
 ### 推荐：直接安装插件包
 
-下载 [CET 智能备考助手 0.1.4 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.4.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
+下载 [CET 智能备考助手 0.1.5 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.5.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
 
 不用解压，也不用安装 Python。已有手动安装版使用相同目录标识，更新同一插件；学习资料位于账户目录，包内不含个人资料。当前为体验改进版本；仅验证 Windows + Anki 26.9.3，不适用于手机端，尚未发布到 AnkiWeb，后续更新需要下载新包安装。
 
-[校验值](downloads/cet-smart-assistant-0.1.4.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
+[校验值](downloads/cet-smart-assistant-0.1.5.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
 
 ### 源码安装
 
@@ -126,9 +127,15 @@ adapt,v. 适应；改编
 
 [工程说明与系统架构](docs/engineering-delivery.md)包含需求、模块、算法和验证记录。
 
+### 7. 备份本机学习资料
+
+在助手窗口点击 **备份本机学习资料**，选择 ZIP 文件的保存位置。压缩包包含本账户的学习计划、专项练习和每日任务记录，以及已保存的词语用法（文件存在时才包含）；包内带有文件清单和恢复提示，不包含 API 密钥。ZIP 未加密，可能包含个人成绩和学习草稿，请保存在安全位置。
+
+备份不包含 Anki 卡片、牌组或复习进度；这些内容仍由 Anki 集合管理，请同时使用 Anki 自身的集合备份。需要恢复时，先关闭 Anki，把 ZIP 中需要恢复的 JSON 文件复制到目标账户的 `cet_smart_assistant` 目录；覆盖前先保留一份当前文件。详见[本机资料备份说明](docs/local-backup.md)。
+
 ## 数据与词库来源
 
-- 学习资料保存在当前 Anki 账户目录的 `cet_smart_assistant/user_data.json`，不随本仓库分发，也不通过 AnkiWeb 同步。请单独备份。
+- 学习资料保存在当前 Anki 账户目录的 `cet_smart_assistant/user_data.json`，不随本仓库分发，也不通过 AnkiWeb 同步。可使用助手中的“备份本机学习资料”导出。
 - 卡片保存在 Anki 集合中，使用 Anki 自身的备份与同步机制。
 - 内置数据来自 [WordTyper Vocabularies](https://github.com/grhliu/wordtyper-vocabularies)，上游声明派生自 [ECDICT](https://github.com/skywind3000/ECDICT)。三份数据采用 MIT 授权；原始 [LICENSE](cet_smart_assistant/vocabularies/LICENSE)、[NOTICE](cet_smart_assistant/vocabularies/NOTICE.md) 与[固定来源版本和校验摘要](cet_smart_assistant/vocabularies/provenance.json)随项目保留。
 - 内置词表是社区备考参考资料，不是官方认证的完整考纲，也不保证覆盖所有考点。
@@ -166,7 +173,7 @@ python -m unittest discover -s tests -v
 python -m compileall -q cet_smart_assistant
 ```
 
-目前 91 项测试通过；学习计划测试还遍历 1～1440 分钟 × 5 种模式的 7200 种组合。`tests/verify_anki_backend.py` 需在具有兼容 Anki Python 包的环境运行，只创建临时测试集合。真实后端验证了 14160 张卡片、重复导入、每套一次撤销及卡面生成。`tests/verify_exam_ui.py` 在真实 Qt 中验证日期保存、重新打开、模拟跨日、未保存输入保护和过期提示。Qt 词库选择与预览已做离屏测试；最新批量界面尚无桌面截图验收。
+目前 95 项单元测试通过；学习计划测试还遍历 1～1440 分钟 × 5 种模式的 7200 种组合。`tests/verify_anki_backend.py` 需在具有兼容 Anki Python 包的环境运行，只创建临时测试集合。真实后端验证了 14160 张卡片、重复导入、每套一次撤销及卡面生成。`tests/verify_exam_ui.py` 在真实 Qt 中验证日期保存、重新打开、模拟跨日、未保存输入保护和过期提示。Qt 词库选择与预览已做离屏测试；最新批量界面尚无桌面截图验收。
 
 编辑器可使用 PyCharm。不要直接运行插件入口 `__init__.py`；`aqt` 由 Anki 提供。修改代码后须复制插件并重启 Anki。
 

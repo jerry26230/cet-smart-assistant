@@ -1,8 +1,9 @@
 """资料输入与四级初始能力诊断窗口。"""
 
-from datetime import date
+from datetime import date, datetime
+from pathlib import Path
 
-from aqt.qt import QComboBox, QDate, QDateEdit, QTimer, QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from aqt.qt import QComboBox, QDate, QDateEdit, QFileDialog, QTimer, QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget
 from aqt.utils import showInfo, showWarning
 
 from .data_service import DataError, load_profile, save_profile
@@ -112,7 +113,13 @@ class ProfileDialog(QDialog):
         outer.addWidget(daily_button)
         weekly_button = QPushButton("本周学习回顾")
         weekly_button.clicked.connect(self.open_weekly_review)
-        outer.addWidget(weekly_button)
+        weekly_row = QHBoxLayout()
+        weekly_row.addWidget(weekly_button)
+        backup_button = QPushButton("备份本机学习资料")
+        backup_button.setToolTip("导出学习计划、练习记录和已保存的词语用法；ZIP 未加密，不含 Anki 卡片或复习进度。")
+        backup_button.clicked.connect(self.backup_local_data)
+        weekly_row.addWidget(backup_button)
+        outer.addLayout(weekly_row)
         training_button = QPushButton("阅读语境 / 写作表达训练")
         training_button.clicked.connect(self.open_training)
         outer.addWidget(training_button)
@@ -145,6 +152,31 @@ class ProfileDialog(QDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh_day)
         self.timer.start(30_000)
+
+    def backup_local_data(self):
+        """Export local assistant records to a user-selected ZIP file."""
+        suggested = "CET学习资料备份-" + datetime.now().strftime("%Y%m%d-%H%M%S") + ".zip"
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "备份本机资料（ZIP 未加密，请选择安全位置）", suggested, "ZIP 备份文件 (*.zip)"
+        )
+        if not filename:
+            return
+        destination = Path(filename)
+        if destination.suffix.lower() != ".zip":
+            destination = Path(str(destination) + ".zip")
+        from .backup import BackupError, create_backup
+        try:
+            files = create_backup(self.path, destination)
+        except BackupError as error:
+            showWarning(str(error), parent=self)
+            return
+        names = "、".join(files)
+        showInfo(
+            f"备份已保存到：\n{destination}\n\n包含：{names}\n"
+            "ZIP 未加密，可能包含成绩和学习记录，请妥善保管。\n"
+            "不包含 Anki 卡片、牌组或复习进度；这些内容请使用 Anki 的集合备份。",
+            parent=self,
+        )
 
     def selected_date(self):
         return self.exam_date.date().toString("yyyy-MM-dd")
