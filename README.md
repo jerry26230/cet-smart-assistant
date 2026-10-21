@@ -1,5 +1,7 @@
 # CET 智能备考助手
 
+[项目展示页](website/index.html) · 本机预览：`python -m http.server 8000 --directory website`
+
 基于 [Anki](https://github.com/ankitects/anki) 插件机制开发的离线英语备考助手，为软件工程课程项目。将备考资料、每日学习计划和词汇卡片整合到 Anki 中，复习调度由 Anki 管理。
 
 **目前已实现：资料保存、谨慎的初始学习提示、每日时间分配、专项练习记录、四级 / 六级 / 雅思内置词库、批量导入与查重。**
