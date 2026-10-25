@@ -32,6 +32,14 @@
 
 ![写作表达训练预览](evidence/task007-training-offscreen.png)
 
+## 0.1.6 内容扩容（2026-10-25）
+
+原训练词扩充为 36 个，每个新增词均配有阅读例句、语境解释、写作填空、参考答案、完整句和搭配提示；每日训练再使用另一组语境按完成情况轮换。现在阅读、写作批量导入各 36 张卡，共 72 张；每日任务共 72 组 / 144 道方向练习。单词用途提示覆盖训练的 36 个词和 abandon、forget、good、fantastic 四个辨析词。
+
+新增词：encourage、improve、require、involve、provide、prevent、achieve、evidence、affect、effect、challenge、consider、result、develop、available、opportunity、reliable、respond、establish、support、increase、appropriate、particular、effective。
+
+内容经逐项检查词形、搭配、填空答案和语义边界，并通过 Cambridge Dictionary 语法说明核对 affect / effect、provide、prevent、consider 与 evidence 的相关用法。内容是项目原创教学示例（AI 辅助），非真题，也没有考试词频统计；不代表经教师或语料库独立审定。动态使用的数量、Anki 临时集合验证与包校验见 [0.1.6 交付记录](package.md#0162026-10-25)。
+
 ## 下一步
 
 将用户确认的困难与具体练习关联保存，再按同类练习的反馈调整内容推荐。扩充例句前先建立更完善的内容审核；使用“真题高频”标签前需要可追溯语料与统计依据。

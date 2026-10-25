@@ -3,7 +3,7 @@
 from aqt.qt import QComboBox, QDialog, QLabel, QPlainTextEdit, QPushButton, QVBoxLayout
 
 from .card_ui import VocabularyDialog
-from .training import DIFFICULTIES, MODES, build_cards, import_training, recommend
+from .training import DIFFICULTIES, EXAMPLES, MODES, build_cards, import_training, recommend
 
 
 class TrainingDialog(VocabularyDialog):
@@ -13,7 +13,7 @@ class TrainingDialog(VocabularyDialog):
         self.setWindowTitle("CET 智能备考助手 · 阅读与写作训练")
         self.resize(720, 650)
         layout = QVBoxLayout(self)
-        intro = QLabel("同一个词，阅读练理解，写作练表达。\n当前提供 12 个词汇的原创示例，每个方向 12 张卡。不是完整专项课程，也不标注真题高频。")
+        intro = QLabel(f"同一个词，阅读练理解，写作练表达。\n当前提供 {len(EXAMPLES)} 个词汇的原创示例，每个方向 {len(EXAMPLES)} 张卡。不是完整专项课程，也不标注真题高频。")
         intro.setWordWrap(True)
         layout.addWidget(intro)
         layout.addWidget(QLabel("你最近主要卡在哪里？"))
@@ -34,7 +34,7 @@ class TrainingDialog(VocabularyDialog):
         self.preview = QPlainTextEdit()
         self.preview.setReadOnly(True)
         layout.addWidget(self.preview)
-        self.status = QLabel("先预览，再添加所选方向的 12 张卡片；重复添加会跳过已有卡。")
+        self.status = QLabel(f"先预览，再添加所选方向的 {len(EXAMPLES)} 张卡片；重复添加会跳过已有卡。")
         self.status.setWordWrap(True)
         layout.addWidget(self.status)
         self.import_button = QPushButton()
@@ -56,14 +56,12 @@ class TrainingDialog(VocabularyDialog):
             self.mode.setCurrentIndex(self.mode.findData(mode))
 
     def update_examples(self, *args):
-        from .training import EXAMPLES
-
         self.example.blockSignals(True)
         self.example.clear()
         for index, example in enumerate(EXAMPLES):
             self.example.addItem(f"示例 {index + 1}：{example[0]}", index)
         self.example.blockSignals(False)
-        self.import_button.setText(f"添加 {MODES[self.mode.currentData()]} 训练卡（12 张）")
+        self.import_button.setText(f"添加 {MODES[self.mode.currentData()]} 训练卡（{len(EXAMPLES)} 张）")
         self.status.setText("只添加所选方向；不会改变原有词库卡片或学习时间分配。")
         self.show_example()
 

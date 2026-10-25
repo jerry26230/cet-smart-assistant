@@ -6,11 +6,13 @@ import unittest
 import test_profile
 
 from cet_core.word_guidance import BUILTIN_GUIDES, WordGuide, guide_text, lookup_guide, render_guide, save_guide, validate_word
+from cet_core.training import EXAMPLES
 
 
 class WordGuidanceTests(unittest.TestCase):
     def test_builtin_coverage_and_semantic_limits(self):
-        self.assertEqual(len(BUILTIN_GUIDES), 16)
+        self.assertEqual(len(BUILTIN_GUIDES), len(EXAMPLES) + 4)
+        self.assertTrue({row[0] for row in EXAMPLES}.issubset(BUILTIN_GUIDES))
         for word, guide in BUILTIN_GUIDES.items():
             guide.validate()
             self.assertIn("非真题", guide_text(guide))

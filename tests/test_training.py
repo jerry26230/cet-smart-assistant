@@ -5,6 +5,8 @@ import sys
 
 from test_anki_service import MemoryCollection
 from cet_core.training import EXAMPLES, build_cards, import_training, recommend
+from cet_core.practice_variants import VARIANTS
+from cet_core.word_guidance import BUILTIN_GUIDES
 
 
 class TrainingTests(unittest.TestCase):
@@ -18,9 +20,9 @@ class TrainingTests(unittest.TestCase):
 
     def test_complete_distinct_examples_and_no_answer_in_writing_blank(self):
         reading, writing = build_cards("reading"), build_cards("writing")
-        self.assertEqual(len(reading), 12)
-        self.assertEqual(len(writing), 12)
-        self.assertEqual(len(set(front for front, _ in reading + writing)), 24)
+        self.assertEqual(len(reading), len(EXAMPLES))
+        self.assertEqual(len(writing), len(EXAMPLES))
+        self.assertEqual(len(set(front for front, _ in reading + writing)), len(reading) + len(writing))
         for example, (front, back) in zip(EXAMPLES, writing):
             self.assertIn("___", front)
             self.assertNotIn(example[4], front)
@@ -29,13 +31,24 @@ class TrainingTests(unittest.TestCase):
         self.assertIn("促成", reading[0][1])
         self.assertIn("第三人称单数", writing[0][1])
 
+    def test_every_training_word_has_a_second_context_and_builtin_guide(self):
+        words = {example[0] for example in EXAMPLES}
+        self.assertEqual(len(words), 36)
+        self.assertEqual(set(VARIANTS), words)
+        self.assertTrue(words.issubset(BUILTIN_GUIDES))
+        for word, sentence, _, prompt, answer, _, _ in EXAMPLES:
+            variant = VARIANTS[word]
+            self.assertNotEqual(sentence, variant[0])
+            self.assertNotEqual(prompt, variant[2])
+            self.assertNotIn(answer.casefold(), variant[2].casefold())
+
     def test_import_and_repeat_keep_original_content(self):
         col = MemoryCollection()
         with patch.dict(sys.modules, {"anki.collection": SimpleNamespace(OpChanges=object, AddNoteRequest=SimpleNamespace)}):
             self.assertTrue(import_training(col, "writing").added)
-            self.assertEqual(len(col.notes), 12)
+            self.assertEqual(len(col.notes), len(EXAMPLES))
             self.assertFalse(import_training(col, "writing").added)
-            self.assertEqual(len(col.notes), 12)
+            self.assertEqual(len(col.notes), len(EXAMPLES))
             self.assertIn("cet_training_writing", col.notes[1].tags)
             self.assertIn("写作表达", col.deck["name"])
 

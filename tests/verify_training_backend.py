@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 
 from verify_anki_backend import Collection  # 同时初始化独立 cet_core 模块包
-from cet_core.training import MODES, import_training
+from cet_core.training import EXAMPLES, MODES, import_training
 
 
 def verify():
@@ -18,7 +18,7 @@ def verify():
                 assert import_training(col, mode).added
                 assert not import_training(col, mode).added
                 ids = col.find_cards(query)
-                assert len(ids) == 12
+                assert len(ids) == len(EXAMPLES)
                 card = col.get_card(ids[0])
                 assert card.queue == 0 and card.reps == 0
                 assert "参考答案" not in card.question()
@@ -26,9 +26,9 @@ def verify():
                 col.undo()
                 assert not col.find_cards(query)
                 import_training(col, mode)
-                results.append({"mode": mode, "count": 12, "repeat_skipped": True,
+                results.append({"mode": mode, "count": len(EXAMPLES), "repeat_skipped": True,
                                 "single_undo": True, "rendered": True})
-            assert col.card_count() == 24
+            assert col.card_count() == 2 * len(EXAMPLES)
         finally:
             col.close()
     return results
