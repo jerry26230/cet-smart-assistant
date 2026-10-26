@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from pathlib import Path
 
-from aqt.qt import QComboBox, QDate, QDateEdit, QFileDialog, QTimer, QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from aqt.qt import QComboBox, QDate, QDateEdit, QFileDialog, QMessageBox, QTimer, QDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QScrollArea, QVBoxLayout, QWidget
 from aqt.utils import showInfo, showWarning
 
 from .data_service import DataError, load_profile, save_profile
@@ -119,6 +119,10 @@ class ProfileDialog(QDialog):
         backup_button.setToolTip("导出学习计划、练习记录和已保存的词语用法；ZIP 未加密，不含 Anki 卡片或复习进度。")
         backup_button.clicked.connect(self.backup_local_data)
         weekly_row.addWidget(backup_button)
+        restore_button = QPushButton("恢复本机学习资料")
+        restore_button.setToolTip("先检查 ZIP 内容，并在写入前备份当前资料。")
+        restore_button.clicked.connect(self.restore_local_data)
+        weekly_row.addWidget(restore_button)
         outer.addLayout(weekly_row)
         training_button = QPushButton("阅读语境 / 写作表达训练")
         training_button.clicked.connect(self.open_training)
@@ -177,6 +181,70 @@ class ProfileDialog(QDialog):
             "不包含 Anki 卡片、牌组或复习进度；这些内容请使用 Anki 的集合备份。",
             parent=self,
         )
+
+    def restore_local_data(self):
+        """Preview and safely restore a plugin-local ZIP backup."""
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "选择本机学习资料备份", "", "CET 助手备份 (*.zip)"
+        )
+        if not filename:
+            return
+        from .backup import BackupError, inspect_backup, restore_backup
+        archive_path = Path(filename)
+        try:
+            preview = inspect_backup(archive_path, self.path)
+        except BackupError as error:
+            showWarning(f"备份检查未通过，当前资料没有改动。\n\n{error}", parent=self)
+            return
+
+        labels = {"user_data.json": "学习计划、练习和任务记录", "word_guides.json": "已保存的词语用法"}
+        lines = [f"备份生成时间：{preview.created_at.replace('T', ' ')}", "", "备份包含："]
+        lines.extend(f"  • {labels[name]}（{size:,} 字节）" for name, size in preview.sizes)
+        if preview.replace_files:
+            lines.extend(("", "将替换当前文件："))
+            lines.extend(f"  • {labels[name]}" for name in preview.replace_files)
+        if preview.add_files:
+            lines.extend(("", "将新增到当前账户："))
+            lines.extend(f"  • {labels[name]}" for name in preview.add_files)
+        if preview.preserve_files:
+            lines.extend(("", "ZIP 未包含、会继续保留："))
+            lines.extend(f"  • {labels[name]}" for name in preview.preserve_files)
+        lines.extend(("", "Anki 卡片和复习进度不在此备份中。"))
+
+        safety_path = None
+        if preview.current_files:
+            suggested = archive_path.parent / (
+                "CET恢复前资料-" + datetime.now().strftime("%Y%m%d-%H%M%S") + ".zip"
+            )
+            safety_name, _ = QFileDialog.getSaveFileName(
+                self, "选择恢复前资料备份的保存位置", str(suggested), "ZIP 备份文件 (*.zip)"
+            )
+            if not safety_name:
+                return
+            safety_path = Path(safety_name)
+            if safety_path.suffix.lower() != ".zip":
+                safety_path = Path(str(safety_path) + ".zip")
+            lines.extend(("", f"写入前将先把当前资料备份到：\n{safety_path}"))
+
+        choice = QMessageBox.question(
+            self,
+            "确认恢复本机学习资料",
+            "\n".join(lines) + "\n\n确认后开始恢复？",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if choice != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            result = restore_backup(self.path, archive_path, safety_path)
+        except BackupError as error:
+            showWarning(f"恢复未完成：\n{error}", parent=self)
+            return
+        restored = "、".join(labels[name] for name in result.files)
+        message = f"已恢复：{restored}。\n请关闭并重新打开助手以重新读取资料。"
+        if result.safety_backup:
+            message += f"\n\n恢复前资料备份：\n{result.safety_backup}"
+        showInfo(message, parent=self)
 
     def selected_date(self):
         return self.exam_date.date().toString("yyyy-MM-dd")

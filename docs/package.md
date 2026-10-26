@@ -35,3 +35,9 @@
 将阅读 / 写作原创训练词由 12 个扩充到 36 个，新增词汇的基础专项卡共 72 张，并为每个词补充第二组每日练习语境；内置单词用法说明覆盖 40 词。示例用于搭配与语义练习，不是历年真题，也未进行考试词频统计。更新下载链接、SHA256 文件、版本清单和展示页。
 
 验证记录：96 项回归测试通过，包含 36 个词的两方向卡片数量、每词第二组语境和内置指南覆盖检查；源码编译通过。构建后的 0.1.6 包通过 ZIP CRC、白名单清单、模块语法、解包后词库数量和训练内容导入检查。SHA256：`67fff67ad18cf58db3ce6cd5d4787d584e95be35e22a0633ece238afd3233727`，文件见 [安装包](../downloads/cet-smart-assistant-0.1.6.ankiaddon) 与 [校验文件](../downloads/cet-smart-assistant-0.1.6.ankiaddon.sha256)。当前执行环境没有 Anki 的 `anki` / `aqt` Python 包，因此本次未执行真实 Anki 后端或桌面安装点击验证；`tests/verify_training_backend.py` 和 `tests/verify_package.py` 可在 Anki 兼容运行环境继续验证。构建命令为 `python scripts/build_addon.py`。
+
+## 0.1.7（2026-10-26）
+
+增加本机学习资料恢复向导，包含 ZIP 文件白名单、CRC 和大小校验、运行时 JSON 格式校验、变更预览、恢复前资料备份、二次确认、原子写入与失败回滚。ZIP 中未包含的文件会保留，超出恢复大小上限的资料不会被导出成无法恢复的备份。11 项备份 / 恢复专项单元测试通过，覆盖恢复、未包含文件保留、坏数据和路径拒绝、损坏 ZIP 拒绝、大小限制、恢复前备份冲突和模拟磁盘失败后的回滚；`compileall` 通过。完整回归测试曾在受限沙箱内因 Python 新建临时目录后无法写入而中断，尚未取得全量结果。
+
+构建包包含 31 个白名单文件，ZIP CRC、manifest 版本、包内源码语法与 SHA256 校验通过。SHA256：`7e5989c1ab00a07f3a5ea8add53f91d55386e675f88bfabe91802001f724229f`，见 [安装包](../downloads/cet-smart-assistant-0.1.7.ankiaddon) 和 [校验文件](../downloads/cet-smart-assistant-0.1.7.ankiaddon.sha256)。Anki 桌面上目前安装运行的是 0.1.4；此环境未授权自动替换正在使用的插件，因此 0.1.7 恢复窗口仍待本机安装后的界面验收。旧版本在 Anki 26.9.3 启动与主窗口验证记录见此前验收。

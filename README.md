@@ -20,7 +20,7 @@
 | 内置词库 | 四级 3815 词、六级 5371 词、雅思 4974 词，离线选择即可建卡 |
 | 批量导入 | CSV / TSV / TXT 文件，或直接粘贴 Excel 两列；导入前预览和检查错误 |
 | 卡片保护 | 同库查重、保留已有释义、输入转义、模板冲突保护、整批撤销 |
-| 本机资料备份 | 一键导出学习资料与已保存词语用法 ZIP；不含 Anki 卡片或复习进度 |
+| 本机资料备份与恢复 | ZIP 预览、格式校验、恢复前备份和安全恢复；不含 Anki 卡片或复习进度 |
 | 验证记录 | 回归测试与真实 Anki 后端批量建卡、重复导入及撤销验证（以当前版本记录为准） |
 
 [查看历次改进](docs/change-summary.md) · [详细规则](docs/planning-and-storage.md) · [验证报告](docs/builtin-vocabulary-verification.md)
@@ -29,11 +29,11 @@
 
 ### 推荐：直接安装插件包
 
-下载 [CET 智能备考助手 0.1.6 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.6.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
+下载 [CET 智能备考助手 0.1.7 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.7.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
 
 不用解压，也不用安装 Python。已有手动安装版使用相同目录标识，更新同一插件；学习资料位于账户目录，包内不含个人资料。当前为体验改进版本；仅验证 Windows + Anki 26.9.3，不适用于手机端，尚未发布到 AnkiWeb，后续更新需要下载新包安装。
 
-[校验值](downloads/cet-smart-assistant-0.1.6.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
+[校验值](downloads/cet-smart-assistant-0.1.7.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
 
 ### 源码安装
 
@@ -133,7 +133,7 @@ adapt,v. 适应；改编
 
 在助手窗口点击 **备份本机学习资料**，选择 ZIP 文件的保存位置。压缩包包含本账户的学习计划、专项练习和每日任务记录，以及已保存的词语用法（文件存在时才包含）；包内带有文件清单和恢复提示，不包含 API 密钥。ZIP 未加密，可能包含个人成绩和学习草稿，请保存在安全位置。
 
-备份不包含 Anki 卡片、牌组或复习进度；这些内容仍由 Anki 集合管理，请同时使用 Anki 自身的集合备份。需要恢复时，先关闭 Anki，把 ZIP 中需要恢复的 JSON 文件复制到目标账户的 `cet_smart_assistant` 目录；覆盖前先保留一份当前文件。详见[本机资料备份说明](docs/local-backup.md)。
+需要恢复时点击 **恢复本机学习资料**，选择 ZIP 后先查看文件预览；如当前已有资料，按提示选择恢复前备份的保存位置，再确认写入。ZIP 未包含的文件会保留，异常 ZIP 会在写入前被拒绝。备份不包含 Anki 卡片、牌组或复习进度；这些内容仍由 Anki 集合管理，请同时使用 Anki 自身的集合备份。详见[本机资料备份说明](docs/local-backup.md)。
 
 ## 数据与词库来源
 
@@ -175,7 +175,7 @@ python -m unittest discover -s tests -v
 python -m compileall -q cet_smart_assistant
 ```
 
-目前 96 项单元测试通过；学习计划测试还遍历 1～1440 分钟 × 5 种模式的 7200 种组合。当前 0.1.6 后端验证与安装包记录见 [交付说明](docs/package.md)。`tests/verify_anki_backend.py` 和 `tests/verify_training_backend.py` 需在具有兼容 Anki Python 包的环境运行，只创建临时测试集合；此次沙箱未提供 Anki Python 运行时，专项包另由模拟集合测试覆盖。`tests/verify_exam_ui.py` 在真实 Qt 中验证日期保存、重新打开、模拟跨日、未保存输入保护和过期提示。Qt 词库选择与预览已做离屏测试；最新批量界面尚无桌面截图验收。
+0.1.7 本机资料备份与恢复专项测试、安装包校验和 Anki 桌面验收边界见 [交付说明](docs/package.md)。测试只使用临时 ZIP 与虚构资料，不接触真实账户资料。
 
 编辑器可使用 PyCharm。不要直接运行插件入口 `__init__.py`；`aqt` 由 Anki 提供。修改代码后须复制插件并重启 Anki。
 
