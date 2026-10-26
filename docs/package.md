@@ -40,4 +40,10 @@
 
 增加本机学习资料恢复向导，包含 ZIP 文件白名单、CRC 和大小校验、运行时 JSON 格式校验、变更预览、恢复前资料备份、二次确认、原子写入与失败回滚。ZIP 中未包含的文件会保留，超出恢复大小上限的资料不会被导出成无法恢复的备份。11 项备份 / 恢复专项单元测试通过，覆盖恢复、未包含文件保留、坏数据和路径拒绝、损坏 ZIP 拒绝、大小限制、恢复前备份冲突和模拟磁盘失败后的回滚；`compileall` 通过。完整回归测试曾在受限沙箱内因 Python 新建临时目录后无法写入而中断，尚未取得全量结果。
 
-构建包包含 31 个白名单文件，ZIP CRC、manifest 版本、包内源码语法与 SHA256 校验通过。SHA256：`7e5989c1ab00a07f3a5ea8add53f91d55386e675f88bfabe91802001f724229f`，见 [安装包](../downloads/cet-smart-assistant-0.1.7.ankiaddon) 和 [校验文件](../downloads/cet-smart-assistant-0.1.7.ankiaddon.sha256)。Anki 桌面上目前安装运行的是 0.1.4；此环境未授权自动替换正在使用的插件，因此 0.1.7 恢复窗口仍待本机安装后的界面验收。旧版本在 Anki 26.9.3 启动与主窗口验证记录见此前验收。
+构建包包含 31 个白名单文件，ZIP CRC、manifest 版本、包内源码语法与 SHA256 校验通过。SHA256：`7e5989c1ab00a07f3a5ea8add53f91d55386e675f88bfabe91802001f724229f`，见 [安装包](../downloads/cet-smart-assistant-0.1.7.ankiaddon) 和 [校验文件](../downloads/cet-smart-assistant-0.1.7.ankiaddon.sha256)。随后已在 Anki 26.9.3 安装 0.1.7 并重启；学习计划窗口和恢复入口正常加载，恢复文件选择器已打开后取消，未改动学习资料。
+
+## 0.1.8（2026-10-26）
+
+主窗口新增词汇库存统计，实时区分仍处于新卡状态的词汇总量与 Anki 调度器提供的今日新卡数量，并按四级、六级、雅思、自定义词汇牌组分别展示。父牌组今日额度使用 Anki 的 `deck_due_tree()` 结果，因此遵循 Anki 当前每日上限。统计仅覆盖助手约定的四类词汇牌组；其他牌组、专项训练卡不计入词汇总量。打开助手时读取一次，也可点“刷新词汇统计”重新读取。
+
+验证记录：新增统计逻辑的 2 项单元测试通过，`compileall` 通过。安装包包含 32 个白名单文件，ZIP CRC、文件清单、manifest 版本和两次构建一致性检查通过；SHA256 为 `fe74b17011b422ba10d318b401efa9f18fdc3b45c318b88b60cdf1ce481a5c1a`，见 [安装包](../downloads/cet-smart-assistant-0.1.8.ankiaddon) 和 [校验文件](../downloads/cet-smart-assistant-0.1.8.ankiaddon.sha256)。全量单元测试在受限环境中未能完成：Python 临时目录写入被拒绝，备份和打包测试报权限错误，另有每日任务测试卡在临时文件创建；`verify_package.py` 需要 Anki 的 `aqt`，当前系统 Python 未安装该运行时。0.1.8 尚未在桌面 Anki 中安装验收。

@@ -4,7 +4,7 @@
 
 基于 [Anki](https://github.com/ankitects/anki) 插件机制开发的离线英语备考助手，为软件工程课程项目。将备考资料、每日学习计划和词汇卡片整合到 Anki 中，复习调度由 Anki 管理。
 
-**目前已实现：资料保存、谨慎的初始学习提示、每日时间分配、专项练习记录、四级 / 六级 / 雅思内置词库、批量导入与查重。**
+**目前已实现：资料保存、谨慎的初始学习提示、每日时间分配、专项练习记录、四级 / 六级 / 雅思内置词库、批量导入与查重、未学习词汇总量与今日新卡额度区分。**
 
 > “智能”指可解释的规则辅助，学习计划采用规则；另提供可选 AI 词汇用法生成，不预测考试成绩。雅思目前只支持词汇学习，学习计划仍面向 CET。
 
@@ -18,6 +18,7 @@
 | 阅读 / 写作训练 | 用户确认困难后推荐方向；36 个原创示例词，阅读语境和写作填空各 36 张卡 |
 | 专项练习记录 | 日期、专项、实际用时、可选原始成绩及复盘备注；历史列表与次数 / 时间汇总 |
 | 内置词库 | 四级 3815 词、六级 5371 词、雅思 4974 词，离线选择即可建卡 |
+| 词汇库存 | 助手显示当前未学习新卡总量、各词库总量及 Anki 今日新卡额度 |
 | 批量导入 | CSV / TSV / TXT 文件，或直接粘贴 Excel 两列；导入前预览和检查错误 |
 | 卡片保护 | 同库查重、保留已有释义、输入转义、模板冲突保护、整批撤销 |
 | 本机资料备份与恢复 | ZIP 预览、格式校验、恢复前备份和安全恢复；不含 Anki 卡片或复习进度 |
@@ -29,11 +30,11 @@
 
 ### 推荐：直接安装插件包
 
-下载 [CET 智能备考助手 0.1.7 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.7.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
+下载 [CET 智能备考助手 0.1.8 安装包](https://github.com/jerry26230/cet-smart-assistant/raw/refs/heads/main/downloads/cet-smart-assistant-0.1.8.ankiaddon)。在 Anki 桌面版打开 **工具 → 插件 → 从文件安装（Install from file）**，选择 `.ankiaddon` 文件，安装后重启 Anki。随后打开 **工具 → CET 智能备考助手**。
 
 不用解压，也不用安装 Python。已有手动安装版使用相同目录标识，更新同一插件；学习资料位于账户目录，包内不含个人资料。当前为体验改进版本；仅验证 Windows + Anki 26.9.3，不适用于手机端，尚未发布到 AnkiWeb，后续更新需要下载新包安装。
 
-[校验值](downloads/cet-smart-assistant-0.1.7.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
+[校验值](downloads/cet-smart-assistant-0.1.8.ankiaddon.sha256) · [打包与验证说明](docs/package.md)
 
 ### 源码安装
 
@@ -89,6 +90,8 @@
 | 雅思 | 4974 | CET 备考::雅思词汇 |
 
 无需联网或自己准备词表。同一词库重复选择不会重复建卡，也不会覆盖已有释义。三套词库相互独立，重叠单词在不同词库各有一张卡片。每天出现的新卡数量仍由 Anki 的牌组选项控制。
+
+牌组列表“未学习”列显示的是 Anki 按每日新卡上限计算的**今日可学量**，不是整套词库剩余的未学习总量。打开 **工具 → CET 智能备考助手**，在“词汇卡片数量”区域查看总未学习新卡数、各词库数量和今日额度；选择“CET 备考”父牌组时，今日额度受父牌组上限约束，单独进入子牌组时则按子牌组上限计算。
 
 ### 3. 补充自己的词汇
 
@@ -160,6 +163,7 @@ cet_smart_assistant/
 ├── practice_ui.py      # 专项练习记录窗口
 ├── word_import.py      # 文件编码与 CSV / TSV 解析
 ├── builtin_vocab.py    # 内置词库加载与完整性校验
+├── vocabulary_stats.py # 未学习新卡总量与今日额度统计
 └── vocabularies/       # 三套词库、来源与授权
 examples/              # 导入模板
 tests/                 # 单元测试与真实后端验证脚本
@@ -175,7 +179,7 @@ python -m unittest discover -s tests -v
 python -m compileall -q cet_smart_assistant
 ```
 
-0.1.7 本机资料备份与恢复专项测试、安装包校验和 Anki 桌面验收边界见 [交付说明](docs/package.md)。测试只使用临时 ZIP 与虚构资料，不接触真实账户资料。
+0.1.8 词汇库存统计、0.1.7 本机资料备份与恢复专项测试、安装包校验和 Anki 桌面验收边界见 [交付说明](docs/package.md)。测试只使用临时资料，不接触真实账户资料。
 
 编辑器可使用 PyCharm。不要直接运行插件入口 `__init__.py`；`aqt` 由 Anki 提供。修改代码后须复制插件并重启 Anki。
 

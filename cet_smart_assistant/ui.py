@@ -10,6 +10,7 @@ from .data_service import DataError, load_profile, save_profile
 from .models import StudentProfile
 from .exam_calendar import upcoming_exams, countdown_text
 from .recommendation import SKILL_LABELS, diagnose_profile, generate_study_plan
+from .vocabulary_stats import PARENT_DECK, read_vocabulary_stats
 
 
 class ProfileDialog(QDialog):
@@ -31,6 +32,16 @@ class ProfileDialog(QDialog):
         intro = QLabel("填写四级成绩及六级备考目标。资料仅保存在当前 Anki 账户的本机目录。")
         intro.setWordWrap(True)
         layout.addWidget(intro)
+        inventory_box = QGroupBox("词汇卡片数量（当前 Anki 集合）")
+        inventory_layout = QVBoxLayout(inventory_box)
+        self.vocabulary_stats_label = QLabel()
+        self.vocabulary_stats_label.setWordWrap(True)
+        inventory_layout.addWidget(self.vocabulary_stats_label)
+        refresh_stats_button = QPushButton("刷新词汇统计")
+        refresh_stats_button.clicked.connect(self.refresh_vocabulary_stats)
+        inventory_layout.addWidget(refresh_stats_button)
+        layout.addWidget(inventory_box)
+        self.refresh_vocabulary_stats()
         form = QFormLayout()
         self.fields = {}
         definitions = [
@@ -156,6 +167,33 @@ class ProfileDialog(QDialog):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh_day)
         self.timer.start(30_000)
+
+    def refresh_vocabulary_stats(self):
+        """Show the full new-card inventory and the scheduler's daily limits."""
+        col = getattr(self.parent(), "col", None)
+        if col is None:
+            self.vocabulary_stats_label.setText("请在已打开的 Anki 账户中查看词汇统计。")
+            return
+        try:
+            stats = read_vocabulary_stats(col)
+        except Exception as error:
+            self.vocabulary_stats_label.setText(
+                "暂时无法读取词汇统计；Anki 的牌组列表仍按原样显示今日卡片数量。\n"
+                f"原因：{error}"
+            )
+            return
+
+        rows = "\n".join(
+            f"{item['label']}：{item['total_new']:,} 张未学习；今日可学 {item['today_new']:,} 张"
+            for item in stats["decks"]
+        )
+        self.vocabulary_stats_label.setText(
+            f"未学习总量：{stats['total_new']:,} 张新卡\n"
+            f"选择“{PARENT_DECK}”今日可学：{stats['today_new']:,} 张\n"
+            f"{rows}\n\n"
+            "牌组列表的“未学习”是 Anki 按每日新卡上限计算的今日数量，不是词库总量。"
+            "选择父牌组时按父级总上限；单独进入子牌组时按该牌组的上限。"
+        )
 
     def backup_local_data(self):
         """Export local assistant records to a user-selected ZIP file."""

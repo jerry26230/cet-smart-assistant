@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "cet_smart_assistant"
 MODULES = """__init__ ai_service anki_service builtin_vocab card_design card_ui daily
 daily_ui data_service exam_calendar feedback models practice practice_ui practice_variants
-recommendation training training_ui ui backup word_guidance word_hooks word_import word_ui""".split()
+recommendation training training_ui ui backup word_guidance word_hooks word_import word_ui
+vocabulary_stats""".split()
 FILES = [*(name + ".py" for name in MODULES), "manifest.json", *(
     "vocabularies/" + name for name in
     ("cet4.json", "cet6.json", "ielts_core.json", "LICENSE", "NOTICE.md", "provenance.json"))]
