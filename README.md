@@ -2,6 +2,10 @@
 
 [项目展示页（含现场学习计划模拟器）](website/index.html) · 支持手机导航与键盘操作 · 本机预览：`python -m http.server 8000 --directory website`
 
+## Android 独立 App
+
+仓库新增 Android 原生版本，面向手机和平板，学习、倒计时与进度不依赖 Anki。首版包含四级 / 六级 / 雅思离线词库、每日新词额度、简化间隔复习、计划设置和七日学习记录。构建及华为 DBR-W10 安装说明见 [Android App 指南](android/README.md)。GitHub Actions 会自动构建可安装 APK。
+
 基于 [Anki](https://github.com/ankitects/anki) 插件机制开发的离线英语备考助手，为软件工程课程项目。将备考资料、每日学习计划和词汇卡片整合到 Anki 中，复习调度由 Anki 管理。
 
 **目前已实现：资料保存、谨慎的初始学习提示、每日时间分配、专项练习记录、四级 / 六级 / 雅思内置词库、批量导入与查重、未学习词汇总量与今日新卡额度区分。**

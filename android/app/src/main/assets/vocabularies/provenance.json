@@ -1,0 +1,19 @@
+{
+  "repository": "https://github.com/grhliu/wordtyper-vocabularies",
+  "commit": "b5790cafcad1795873410e984c834ef1ddac20ac",
+  "retrieved": "2026-09-26",
+  "files": {
+    "cet4": {
+      "count": 3815,
+      "sha256": "2d1b5ec0452e2dac0a4fddc53ac0c0884a6ad466f2b436ff4ac89062a1f2602d"
+    },
+    "cet6": {
+      "count": 5371,
+      "sha256": "5802b0c08b68c484ac757e3146ed4f3adcda3bf5ea8ccfd4a4e305f35c4a5694"
+    },
+    "ielts_core": {
+      "count": 4974,
+      "sha256": "1244ad685c12513851289bd650833039ae14d67ae0bb0b59a3b4607b76bdf355"
+    }
+  }
+}

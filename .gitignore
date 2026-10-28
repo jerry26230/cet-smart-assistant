@@ -9,6 +9,11 @@ ai_settings.json
 .test-tmp/
 .local-backups/
 .local-only/
+# Android Studio / Gradle outputs and local SDK location.
+android/.gradle/
+android/local.properties
+android/.idea/
+android/**/build/
 # 答辩材料仅留本机，防止重新混入公开插件。
 cet_smart_assistant/demo_data.py
 cet_smart_assistant/demo_ui.py
